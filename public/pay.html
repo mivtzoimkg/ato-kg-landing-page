@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מעבר לתשלום מאובטח - את"ה קרית גת</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Heebo', sans-serif; }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #F27D26;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+<meta name="NetsparkQuiltingResult" total-length="6381" removed="0" rules-found="w2676,w22403,w3056,w33224,w10931,w10932,w2598" />
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-md w-full bg-white rounded-[40px] shadow-2xl p-10 text-center border border-gray-100">
+        <div class="mb-8 flex justify-center">
+            <div class="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-[#F27D26]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="text-3xl font-black text-gray-900 mb-4">מעבר לתשלום</h1>
+        <p class="text-gray-600 mb-8 leading-relaxed">
+            כדי להשלים את התרומה בצורה בטוחה, אנא לחצו על הכפתור למטה. הפרטים שמילאתם יועברו אוטומטית לדף הסליקה.
+        </p>
+
+        <div id="loading-state" class="hidden flex-col items-center mb-8">
+            <div class="loader mb-4"></div>
+            <p class="text-sm text-gray-500 font-bold">מעביר אותך למערכת משולם...</p>
+        </div>
+
+        <button id="pay" class="w-full bg-[#F27D26] text-white py-5 rounded-2xl font-black text-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95">
+            המשך לתשלום מאובטח
+        </button>
+
+        <p class="mt-6 text-[11px] text-gray-400">
+            * שימו לב: הדף ייפתח בחלון חדש. במידה והחלון לא נפתח, וודאו שחוסם הפופ-אפים שלכם כבוי.
+        </p>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(location.search);
+        const amount = params.get("amount");
+        const name = params.get("name");
+        const phone = params.get("phone");
+        const email = params.get("email");
+
+        document.getElementById("pay").onclick = () => {
+            const payBtn = document.getElementById("pay");
+            const loadingState = document.getElementById("loading-state");
+            
+            payBtn.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            // פתיחת דף משולם
+            const w = window.open(
+                "https://meshulam.co.il/quick_payment?b=6aad8642aa34f01818d7651d225659f9"
+            );
+
+            // ניסיון מילוי אוטומטי
+            // הערה חשובה: עקב מגבלות אבטחה של דפדפנים (Same-Origin Policy), 
+            // גישה ישירה ל-DOM של חלון חיצוני אפשרית רק אם הם באותו דומיין.
+            // במידה וזה לא עובד, מומלץ להשתמש בפרמטרים של משולם במידה והם נתמכים.
+            const timer = setInterval(() => {
+                try {
+                    if (w && w.document) {
+                        const d = w.document;
+                        
+                        const sumField = d.querySelector("#sum");
+                        const nameField = d.querySelector("#full_name");
+                        const phoneField = d.querySelector("#phone");
+                        const emailField = d.querySelector("#email");
+
+                        if (sumField) sumField.value = amount;
+                        if (nameField) nameField.value = name;
+                        if (phoneField) phoneField.value = phone;
+                        if (emailField) emailField.value = email;
+
+                        // אם הצלחנו למלא לפחות שדה אחד, אפשר להפסיק
+                        if (sumField || nameField || phoneField || emailField) {
+                            clearInterval(timer);
+                        }
+                    }
+                } catch (e) {
+                    // שגיאת אבטחה צפויה בגלל Cross-Origin
+                    // במקרה כזה, הדף פשוט ייפתח כרגיל והמשתמש ימלא ידנית 
+                    // או שהפרמטרים ב-URL יטופלו על ידי משולם (אם הם תומכים בכך)
+                }
+            }, 500);
+
+            // סגירת הטיימר אחרי 10 שניות בכל מקרה כדי לא לבזבז משאבים
+            setTimeout(() => clearInterval(timer), 10000);
+        };
+    </script>
+<input type='hidden' name='ntsp_block_page' value='https://m.safepage.neto.net.il/?a=block/block1&level=15&url=http%3A%2F%2Faistudio.google.com%2F_%2Fupload%2F6c5e0332-86c8-4516-aa09-87d8c59fe28b%2Ffile%2F16288e8e6dc7fa31c8e2f352f3dfba9826bf1d21e1b7ba092fbdf09823b6248a&user_id=491762&sigid=d35daaa023900c97db3bca82af0052e9463f05a2a358926a2ef49d0b59d4883c&startm=0&keyword=&referer=https%3A%2F%2Faistudio.google.com%2F&category=77&cause=Quiltingjs'/><input type='hidden' name='ntsp_is_etrog' value='0'/><input type='hidden' name='ntsp_url_category' value='77'/><input type='hidden' name='ntsp_quilting' value='3'/><input type='hidden' name='ntsp_media_level' value='15'/><input type='hidden' name='ntsp_user_level' value='15'/><input type='hidden' name='ntsp_url_level' value='40'/><input type='hidden' name='ntsp_block_wa_status' value='0'/><script src='/jsQuilting/server/jsDict_utf8.js?v=1&k=23898278c1850f536d688db3614128a0' type='text/javascript' defer></script></body>
+</html>

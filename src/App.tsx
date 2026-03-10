@@ -143,7 +143,7 @@ const Hero = () => {
           <p className="text-base text-gray-600 mb-5 leading-relaxed max-w-lg text-right">
             יחד עם תלמידי ישיבת תומכי תמימים קרית גת, אנו יוצאים למבצע כיבוש העולם באור התורה והחסידות. השותפות שלך היא הכוח שלנו להמשיך ולהפיץ.
           </p>
-          <div className="flex flex-wrap gap-3 justify-end md:justify-start">
+          <div className="flex flex-wrap gap-3 justify-start">
             <a href="#donate" className="bg-primary text-white px-5 py-3 rounded-xl font-black text-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2">
               אני רוצה להיות שותף <ArrowLeft size={16} />
             </a>
@@ -424,7 +424,7 @@ const DonationGrid = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-black text-secondary mb-4">בחר את מסלול השותפות שלך</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            כל תרומה, קטנה כגדולה, מצטרפת למהפכה של אור. בחרו את הסכום המתאים לכם והיו חלק מההצלחה.
+            כל תרומה, קטנה כגדולה, מצטרפת למפעל האדיר של הפצת המעיינות. בחרו את הסכום המתאים לכם והיו שותפים בכיבוש העולם באור החסידות.
           </p>
         </div>
 
@@ -508,26 +508,26 @@ const DonationGrid = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[80vh]' : 'max-w-md'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500`}
+              className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : 'max-w-md'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
             >
-              <div className={`h-full flex flex-col ${showIframe ? '' : 'p-8'}`}>
-                <div className={`flex justify-between items-center ${showIframe ? 'p-4 border-b' : 'mb-6'}`}>
-                  <h3 className="text-2xl font-black text-secondary">
-                    {showIframe ? 'תשלום מאובטח' : 'פרטי תרומה'}
-                  </h3>
-                  <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                    <X size={24} />
-                  </button>
-                </div>
+              <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
+                <h3 className="text-2xl font-black text-secondary">
+                  {showIframe ? 'תשלום מאובטח' : 'פרטי תרומה'}
+                </h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
 
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {showIframe ? (
                   <iframe 
                     src={getMeshulamUrl()}
-                    className="w-full flex-1 border-none"
+                    className="w-full h-full border-none min-h-[500px]"
                     title="Meshulam Payment"
                   />
                 ) : (
-                  <>
+                  <div className="p-8">
                     <div className="bg-primary/10 p-4 rounded-2xl mb-6 text-center">
                       <div className="text-sm text-primary font-bold mb-1">סכום התרומה</div>
                       <div className="text-4xl font-black text-secondary">₪{selectedAmount?.toLocaleString()}</div>
@@ -563,7 +563,7 @@ const DonationGrid = () => {
                         התשלום מאובטח בתקן PCI-DSS. פרטי האשראי אינם נשמרים במערכת.
                       </p>
                     </form>
-                  </>
+                  </div>
                 )}
               </div>
             </motion.div>
@@ -654,7 +654,7 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
               איגוד תלמידי הישיבות - ישיבת תומכי תמימים ליובאוויטש קרית גת. 
               פועלים להפצת המעיינות והכנת העולם לקבלת פני משיח צדקנו.
             </p>
-            <div className="flex gap-4 justify-end md:justify-start">
+            <div className="flex gap-4 justify-start">
               <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Share2 size={18} />
               </button>
@@ -667,11 +667,11 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
           <div className="text-right">
             <h5 className="text-lg font-bold mb-6 text-primary">צור קשר</h5>
             <ul className="space-y-4 text-gray-300">
-              <li className="flex items-center justify-end gap-3 text-right">
+              <li className="flex items-center justify-start gap-3 text-right">
                 <MapPin size={18} className="text-primary shrink-0" />
                 <span>אליהו הנביא 5, קרית גת</span>
               </li>
-              <li className="flex items-center justify-end gap-3 text-right">
+              <li className="flex items-center justify-start gap-3 text-right">
                 <Mail size={18} className="text-primary shrink-0" />
                 <span>mivtzoim.kg@gmail.com</span>
               </li>
@@ -748,7 +748,11 @@ const ImageMarquee = () => {
           </motion.div>
       </div>
 
-      <div className="relative flex overflow-x-hidden group/marquee" style={{ direction: 'ltr' }}>
+      <div className="relative flex w-full overflow-hidden group/marquee select-none touch-pan-y" style={{ direction: 'ltr' }}>
+        <style dangerouslySetInnerHTML={{ __html: `
+          .group\\/marquee::-webkit-scrollbar { display: none; }
+          .group\\/marquee { -ms-overflow-style: none; scrollbar-width: none; }
+        `}} />
         <div className="animate-marquee flex whitespace-nowrap group-hover/marquee:[animation-play-state:paused]">
           {[...images, ...images, ...images].map((src, i) => (
             <motion.div 
@@ -763,7 +767,7 @@ const ImageMarquee = () => {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${i}/400/600`;
+                    (e.target as HTMLImageElement).src = `                           ${i}/400/600`;
                   }}
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
@@ -850,8 +854,8 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
         </motion.div>
 
         <div className="mt-12 text-center">
-          <h3 className="text-2xl font-black text-secondary mb-4">היה שותף במהפכה</h3>
-          <p className="text-gray-600 mb-8">התרומה שלך מאפשרת לנו להגיע לעוד יהודי ולהניח לו תפילין</p>
+          <h3 className="text-2xl font-black text-secondary mb-4">היה שותף בהפצת המעיינות</h3>
+          <p className="text-gray-600 mb-8">התרומה שלך מאפשרת לנו להגיע לעוד יהודי, להניח לו תפילין ולהאיר את נשמתו</p>
           <button onClick={() => { onBack(); setTimeout(() => document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="bg-primary text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:shadow-2xl transition-all inline-block">
             לתרומה מאובטחת
           </button>
@@ -905,12 +909,12 @@ export default function App() {
           <div className="max-w-5xl mx-auto px-4">
             <div className="bg-linear-to-r from-secondary to-primary p-8 sm:p-12 rounded-[40px] text-white text-center relative overflow-hidden shadow-2xl">
               <div className="relative z-10">
-                <h2 className="text-3xl sm:text-4xl font-black mb-6">מוכנים להיות חלק מהמהפכה?</h2>
+                <h2 className="text-3xl sm:text-4xl font-black mb-6">מוכנים להפיץ את המעיינות?</h2>
                 <p className="text-lg sm:text-xl opacity-90 mb-10 max-w-2xl mx-auto">
-                  הצטרפו למאות השותפים שכבר הבטיחו את עתיד עולם הישיבות. כל שקל שלכם הופך לאור של תורה.
+                  היו שותפים בפעילות האדירה של את"ה קרית גת - מבצע תפילין, הפצת אור החסידות, ופעילות חסד ענפה בבסיסי צה"ל ובמרחבי הדרום. יחד נכין את העולם לגאולה!
                 </p>
                 <a href="#donate" className="inline-block w-full sm:w-auto bg-white text-secondary px-12 py-5 rounded-2xl font-black text-xl hover:bg-opacity-90 transition-all shadow-xl">
-                  אני תורם עכשיו!
+                  אני שותף למהפכת האור!
                 </a>
               </div>
               {/* Decorative circles */}
