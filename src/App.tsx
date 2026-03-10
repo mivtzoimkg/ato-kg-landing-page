@@ -748,7 +748,7 @@ const ImageMarquee = () => {
           </motion.div>
       </div>
 
-      <div className="relative flex w-full overflow-hidden group/marquee select-none touch-pan-y" style={{ direction: 'ltr' }}>
+      <div className="relative flex w-full overflow-hidden group/marquee select-none touch-pan-y py-10" style={{ direction: 'ltr' }}>
         <style dangerouslySetInnerHTML={{ __html: `
           .group\\/marquee::-webkit-scrollbar { display: none; }
           .group\\/marquee { -ms-overflow-style: none; scrollbar-width: none; }
@@ -767,7 +767,7 @@ const ImageMarquee = () => {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `                           ${i}/400/600`;
+                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${i}/400/600`;
                   }}
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
