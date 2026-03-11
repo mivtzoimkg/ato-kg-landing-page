@@ -21,8 +21,7 @@
     "express": "^4.21.2",
     "dotenv": "^17.2.3",
     "better-sqlite3": "^12.4.1",
-    "motion": "^12.23.24",
-    "@vercel/speed-insights": "^1.0.0"
+    "motion": "^12.23.24"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
