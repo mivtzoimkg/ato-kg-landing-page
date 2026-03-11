@@ -125,35 +125,35 @@ const Hero = () => {
       <div className="absolute top-0 right-0 w-1/2 h-full bg-primary/5 -skew-x-12 -z-10" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl -z-10" />
 
-      <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-6 items-center">
+      <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
         <motion.div
           initial={{ opacity: 0, x: 100, filter: "blur(10px)" }}
           animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
           transition={{ type: "spring", stiffness: 50, damping: 20 }}
+          className="order-2 md:order-1"
         >
-          <div className="mb-3">
+          <div className="mb-3 text-right md:text-right">
             <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest mb-1">
               קמפיין שותפות תשפ"ו
             </span>
           </div>
-          <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-secondary mb-3 leading-[0.9] tracking-tighter text-right">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-secondary mb-3 leading-[0.9] tracking-tighter text-right">
             אייננעמען די <br />
             <span className="text-primary italic">וועלט!</span>
           </h2>
-          <p className="text-base text-gray-600 mb-5 leading-relaxed max-w-lg text-right">
+          <p className="text-base sm:text-lg text-gray-600 mb-5 leading-relaxed max-w-lg text-right ml-auto md:ml-0">
             יחד עם תלמידי ישיבת תומכי תמימים קרית גת, אנו יוצאים למבצע כיבוש העולם באור התורה והחסידות. השותפות שלך היא הכוח שלנו להמשיך ולהפיץ.
           </p>
           <div className="flex flex-wrap gap-3 justify-start">
-            <a href="#donate" className="bg-primary text-white px-5 py-3 rounded-xl font-black text-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2">
-              אני רוצה להיות שותף <ArrowLeft size={16} />
+            <a href="#donate" className="bg-primary text-white px-6 py-4 rounded-xl font-black text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2">
+              אני רוצה להיות שותף <ArrowLeft size={18} />
             </a>
           </div>
         </motion.div>
 
-        <div className="relative h-[400px] md:h-[500px] flex items-center justify-center mt-12 md:mt-0">
+        <div className="relative h-[350px] sm:h-[450px] md:h-[500px] flex items-center justify-center mt-8 md:mt-0 order-1 md:order-2">
           <AnimatePresence mode="popLayout">
             {stack.slice(0, 3).reverse().map((src, index) => {
-              const isFront = index === 2;
               return (
                 <motion.div
                   key={src}
@@ -168,7 +168,7 @@ const Hero = () => {
                   }}
                   exit={{ opacity: 0, x: -100, scale: 0.8 }}
                   transition={{ duration: 0.5 }}
-                  className="absolute w-64 md:w-80 aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border-4 border-white bg-gray-100"
+                  className="absolute w-56 sm:w-72 md:w-80 aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border-4 border-white bg-gray-100"
                 >
                   <img src={src} alt="Mivtzoim" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
@@ -224,10 +224,6 @@ const HanukkahHero = () => {
     "/photos/hanukkah_img_2.JPG.JPG",
     "/photos/hanukkah_img_3.JPG.JPG",
     "/photos/hanukkah_img_4.JPG.JPG",
-    "/photos/hanukkah_img_1.JPG.JPG",
-    "/photos/hanukkah_img_2.JPG.JPG",
-    "/photos/hanukkah_img_3.JPG.JPG",
-    "/photos/hanukkah_img_4.JPG.JPG",
   ];
 
   return (
@@ -237,13 +233,14 @@ const HanukkahHero = () => {
       </div>
       
       <div className="max-w-6xl mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
+            className="text-right"
           >
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center justify-start gap-3 mb-3">
               <motion.div 
                 animate={{ 
                   y: [0, -5, 0],
@@ -254,18 +251,18 @@ const HanukkahHero = () => {
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white"
+                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white"
               >
-                <Flame size={20} />
+                <Flame size={24} />
               </motion.div>
-              <h2 className="text-xl sm:text-2xl font-black text-white">סיכום פעילות חנוכה</h2>
+              <h2 className="text-2xl sm:text-3xl font-black text-white">סיכום פעילות חנוכה</h2>
             </div>
             
-            <p className="text-base text-white/90 leading-relaxed mb-4 font-medium text-right">
+            <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-6 font-medium">
               במהלך ימי החנוכה, תלמידי הישיבה יצאו לפעילות חנוכה רחבת היקף בערי הדרום ובבסיסי צה"ל בדרום הארץ ועוטף עזה. התלמידים הגיעו למוצבים מרוחקים, שטחי כינוס, כשהם מצוידים במאות חנוכיות, אלפי סופגניות חמות והרבה שמחה חסידית.
             </p>
 
-            <div className="grid grid-cols-3 gap-2 mb-6">
+            <div className="grid grid-cols-3 gap-3 mb-8">
               {[
                 { label: "חנוכיות", value: "500+" },
                 { label: "סופגניות", value: "1,000+" },
@@ -281,10 +278,10 @@ const HanukkahHero = () => {
                     stiffness: 120,
                     delay: i * 0.1 
                   }}
-                  className="bg-white/10 backdrop-blur-sm p-2 rounded-xl border border-white/20 text-center"
+                  className="bg-white/10 backdrop-blur-sm p-3 rounded-2xl border border-white/20 text-center"
                 >
-                  <div className="text-2xl font-black text-white mb-0.5">{stat.value}</div>
-                  <div className="text-[10px] font-bold text-white/70 uppercase tracking-widest">{stat.label}</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-0.5">{stat.value}</div>
+                  <div className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-widest">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
@@ -294,20 +291,20 @@ const HanukkahHero = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="grid grid-cols-2 gap-2 max-w-md mx-auto lg:mx-0"
+            className="grid grid-cols-2 gap-3 max-w-lg mx-auto md:mx-0"
           >
             <div className="space-y-2">
               <div className="rounded-[20px] overflow-hidden shadow-lg border-2 border-white/20 aspect-video bg-black/40">
                 <video src="/videos/hanukkah_vid_1.MP4" autoPlay muted loop playsInline className="w-full h-full object-cover" />
               </div>
               <DynamicImageSquare 
-                images={[hanukkahImages[0], hanukkahImages[1], hanukkahImages[2]]} 
+                images={[hanukkahImages[0], hanukkahImages[1]]} 
                 className="rounded-[20px] shadow-lg border-2 border-white/20 aspect-square bg-white/5"
               />
             </div>
             <div className="space-y-2 pt-4">
               <DynamicImageSquare 
-                images={[hanukkahImages[4], hanukkahImages[5], hanukkahImages[6], hanukkahImages[7]]} 
+                images={[hanukkahImages[2], hanukkahImages[3]]} 
                 className="rounded-[20px] shadow-lg border-2 border-white/20 aspect-square bg-white/5"
               />
               <div className="rounded-[20px] overflow-hidden shadow-lg border-2 border-white/20 aspect-video bg-black/40">
@@ -428,7 +425,7 @@ const DonationGrid = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {DONATION_OPTIONS.map((option, i) => (
             <motion.div
               key={option.id}
@@ -446,7 +443,7 @@ const DonationGrid = () => {
                 scale: 1.05,
                 boxShadow: "0 25px 50px -12px rgba(var(--color-primary), 0.25)"
               }}
-              className={`relative bg-white p-8 rounded-3xl shadow-lg border-2 transition-colors ${option.isPopular ? 'border-primary' : 'border-transparent'}`}
+              className={`relative bg-white p-8 rounded-[32px] shadow-lg border-2 transition-all duration-300 ${option.isPopular ? 'border-primary' : 'border-transparent'}`}
             >
               {option.isPopular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold">
@@ -577,9 +574,9 @@ const DonationGrid = () => {
 const ImpactSection = () => {
   const stats = [
     { icon: <Users />, label: "הנחות תפילין בשנה האחרונה", value: "25,200" },
-    { icon: <BookOpen />, label: "שעות לימוד חסידות", value: "12,000" },
+    { icon: <BookOpen />, label: "אותיות בספר תורה כללי ושל ילדי ישראל", value: "18,490" },
+    { icon: <Zap />, label: "קריאות מגילה", value: "1,000" },
     { icon: <Globe />, label: "מוקדי פעילות", value: "64" },
-    { icon: <Award />, label: "מבצעי לימוד", value: "15" },
   ];
 
   return (
@@ -601,10 +598,13 @@ const ImpactSection = () => {
             </p>
             <ul className="space-y-4">
               {[
-                'ארגון מבצעי לימוד מעמיקים לתלמידי הישיבה.',
                 'פעילות מבצע תפילין בכל אזור הדרום.',
                 'פעילות חנוכה בבסיסי צה"ל ובבתי רפואה ברחבי הארץ.',
-                'הפצת המעיינות והפצת אור החסידות בקרב תושבי האזור.'
+                'הפצת המעיינות והפצת אור החסידות בקרב תושבי האזור.',
+                'אלפי אותיות בספר תורה הכללי ושל ילדי ישראל',
+                'קריאות מגילה ומשלוחי מנות בפורים',
+                'מסיבות שבת',
+                'עשרת הדברות בחג השבועות'
               ].map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-gray-700 font-medium">
                   <CheckCircle2 className="text-primary" size={20} />
@@ -645,16 +645,16 @@ const ImpactSection = () => {
 
 const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
   return (
-    <footer className="bg-secondary text-white pt-16 pb-10">
+    <footer className="bg-secondary text-white pt-20 pb-10" dir="rtl">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 text-right">
+          <div className="col-span-1 sm:col-span-2 flex flex-col items-start md:items-center lg:items-start md:px-12 lg:px-0">
             <img src="/logos/logo1.png" alt="אתה לוגו" className="h-16 w-auto object-contain mb-6" referrerPolicy="no-referrer" />
-            <p className="text-gray-300 max-w-md leading-relaxed mb-8 text-right">
+            <p className="text-gray-300 max-w-md leading-relaxed mb-8 text-right md:text-center lg:text-right">
               איגוד תלמידי הישיבות - ישיבת תומכי תמימים ליובאוויטש קרית גת. 
               פועלים להפצת המעיינות והכנת העולם לקבלת פני משיח צדקנו.
             </p>
-            <div className="flex gap-4 justify-start">
+            <div className="flex gap-4">
               <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
                 <Share2 size={18} />
               </button>
@@ -664,28 +664,32 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
             </div>
           </div>
 
-          <div className="text-right">
-            <h5 className="text-lg font-bold mb-6 text-primary">צור קשר</h5>
-            <ul className="space-y-4 text-gray-300">
-              <li className="flex items-center justify-start gap-3 text-right">
-                <MapPin size={18} className="text-primary shrink-0" />
-                <span>אליהו הנביא 5, קרית גת</span>
-              </li>
-              <li className="flex items-center justify-start gap-3 text-right">
-                <Mail size={18} className="text-primary shrink-0" />
-                <span>mivtzoim.kg@gmail.com</span>
-              </li>
-            </ul>
+          <div className="flex flex-col items-start md:items-center lg:items-start">
+            <div className="text-right">
+              <h5 className="text-lg font-bold mb-6 text-primary">צור קשר</h5>
+              <ul className="space-y-4 text-gray-300">
+                <li className="flex items-center justify-start gap-3">
+                  <MapPin size={18} className="text-primary shrink-0" />
+                  <span>אליהו הנביא 5, קרית גת</span>
+                </li>
+                <li className="flex items-center justify-start gap-3">
+                  <Mail size={18} className="text-primary shrink-0" />
+                  <span>mivtzoim.kg@gmail.com</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
-          <div className="text-right">
-            <h5 className="text-lg font-bold mb-6 text-primary">ניווט מהיר</h5>
-            <ul className="space-y-4 text-gray-300">
-              <li><button onClick={() => { window.scrollTo(0, 0); setView?.('home'); }} className="hover:text-primary transition-colors">דף הבית</button></li>
-              <li><a href="#impact" className="hover:text-primary transition-colors">פעילות ודיווחים</a></li>
-              <li><a href="#donate" className="hover:text-primary transition-colors">תרומה מאובטחת</a></li>
-              <li><button onClick={() => { window.scrollTo(0, 0); setView?.('prayers'); }} className="hover:text-primary transition-colors">סדר הנחת תפילין</button></li>
-            </ul>
+          <div className="flex flex-col items-start md:items-center lg:items-start">
+            <div className="text-right">
+              <h5 className="text-lg font-bold mb-6 text-primary">ניווט מהיר</h5>
+              <ul className="space-y-4 text-gray-300">
+                <li><button onClick={() => { window.scrollTo(0, 0); setView?.('home'); }} className="hover:text-primary transition-colors">דף הבית</button></li>
+                <li><a href="#impact" className="hover:text-primary transition-colors">פעילות ודיווחים</a></li>
+                <li><a href="#donate" className="hover:text-primary transition-colors">תרומה מאובטחת</a></li>
+                <li><button onClick={() => { window.scrollTo(0, 0); setView?.('prayers'); }} className="hover:text-primary transition-colors">סדר הנחת תפילין</button></li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -767,7 +771,7 @@ const ImageMarquee = () => {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${i}/400/600`;
+                    (e.target as HTMLImageElement).src = `                           ${i}/400/600`;
                   }}
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
@@ -878,7 +882,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen font-sans" dir="rtl">
       <Navbar onPrayersClick={() => setView('prayers')} />
       <main>
         <Hero />
@@ -889,17 +893,39 @@ export default function App() {
         
         {/* Testimonial Section */}
         <section className="py-24 bg-primary/5">
-          <div className="max-w-4xl mx-auto px-4 text-center">
-            <Heart className="text-primary mx-auto mb-6" size={48} />
-            <h2 className="text-3xl font-black text-secondary mb-8">אני מניח תפילין בכל יום שישי רק בזכות את"ה</h2>
-            <div className="flex items-center justify-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary bg-gray-200 flex items-center justify-center">
-                <Users className="text-primary/40" size={32} />
-              </div>
-              <div className="text-right">
-                <div className="font-bold text-secondary"> ו. מרדכי.</div>
-                <div className="text-sm text-gray-500"> מקורב של תלמיד שיעור ג' </div>
-              </div>
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-12">
+              <Heart className="text-primary mx-auto mb-6" size={48} />
+              <h2 className="text-3xl font-black text-secondary">מה אומרים עלינו בשטח?</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { name: "ו. מרדכי", location: "תושב אשקלון", quote: "אני מניח תפילין בכל יום שישי רק בזכות הבחורים של את\"ה שמגיעים אלינו בחיוך." },
+                { name: "יוסי א.", location: "בעל עסק בקרית גת", quote: "האור שהם מכניסים לחנות בכל יום שישי הוא הכוח שלי לכל השבוע. פשוט מדהים." },
+                { name: "דניאל ל.", location: "חייל במילואים", quote: "בחנוכה הם הגיעו אלינו לעומק השטח עם סופגניות וחנוכיות. זה חימם לנו את הלב בצורה שאי אפשר לתאר." }
+              ].map((testimonial, i) => (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-white p-8 rounded-[32px] shadow-xl relative"
+                >
+                  <div className="absolute -top-4 -right-4 w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-serif text-2xl">"</div>
+                  <p className="text-gray-700 italic mb-6 text-lg leading-relaxed text-right">"{testimonial.quote}"</p>
+                  <div className="flex items-center justify-end gap-3">
+                    <div className="text-right">
+                      <div className="font-bold text-secondary">{testimonial.name}</div>
+                      <div className="text-xs text-gray-500">{testimonial.location}</div>
+                    </div>
+                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-primary bg-gray-100 flex items-center justify-center">
+                      <Users className="text-primary/40" size={24} />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
