@@ -17,7 +17,7 @@ import {
   Flame,
   Zap
 } from 'lucide-react';
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // --- Types ---
 interface DonationOption {
