@@ -15,7 +15,10 @@ import {
   Share2,
   Award,
   Flame,
-  Zap
+  Zap,
+  Bus,
+  Store,
+  Newspaper
 } from 'lucide-react';
 
 // --- Types ---
@@ -29,10 +32,56 @@ interface DonationOption {
 
 // --- Constants ---
 const DONATION_OPTIONS: DonationOption[] = [
-  { id: 1, amount: 180, title: "שותף צעיר", description: "תמיכה בפעילות שבועית אחת של תלמיד בישיבה" },
-  { id: 2, amount: 360, title: "חבר את\"ה", description: "מימון חומרי לימוד והפצה לשבוע שלם", isPopular: true },
-  { id: 3, amount: 770, title: "בונה עולם", description: "חסות על מיניבוס אחד למבצע תפילין לאחד מערי הדרום" },
-  { id: 4, amount: 1800, title: "עמוד התווך", description: "חסות על שני מינובוסים למבצע תפילין וכל הוצאות ההפצה במיניבוסים אלה (כיפות, קריאת שמע, עלוני הסבר, ועשרות עלוני שיחת השבוע)" },
+  { 
+    id: 1, 
+    amount: 180, 
+    title: "שותף צעיר", 
+    description: "תמיכה בפעילות שבועית אחת של תלמיד בישיבה",
+  },
+  { 
+    id: 2, 
+    amount: 360, 
+    title: "חבר את\"ה", 
+    description: "דוכן תפילין", 
+    isPopular: true 
+  },
+  { 
+    id: 3, 
+    amount: 770, 
+    title: "בונה עולם", 
+    description: "חסות על מיניבוס אחד למבצע תפילין לאחד מערי הדרום",
+  },
+  { 
+    id: 4, 
+    amount: 1800, 
+    title: "עמוד התווך", 
+    description: "חסות על שני מינובוסים למבצע תפילין וכל הוצאות ההפצה במיניבוסים אלה (כיפות, קריאת שמע, עלוני הסבר, ועשרות עלוני שיחת השבוע)",
+  },
+];
+
+const REVOLUTION_OPTIONS = [
+  { 
+    id: 'rev-1', 
+    amount: 770, 
+    title: "מיניבוס למבצע תפילין", 
+    icon: Bus,
+    description: "מימון מיניבוס מלא למבצע תפילין"
+  },
+  { 
+    id: 'rev-2', 
+    amount: 360, 
+    title: "דוכן תפילין", 
+    icon: Store,
+    description: "הקמת ותפעול דוכן תפילין"
+  },
+  { 
+    id: 'rev-3', 
+    amount: 180, 
+    title: "זיכוי הרבים", 
+    icon: Newspaper,
+    description: "שיחת השבוע",
+    subDescription: "ועלוני חב\"ד השבועיים"
+  },
 ];
 
 const GOAL = 500000;
@@ -67,9 +116,12 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
           <a href="#donate" className="bg-primary text-white px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all shadow-md hover:shadow-lg">תרום עכשיו</a>
         </div>
 
-        <button className="md:hidden text-secondary" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
+        <div className="flex items-center gap-3">
+          <a href="#donate" className="bg-primary text-white px-4 py-2 rounded-full font-bold text-sm shadow-md md:hidden">תרום</a>
+          <button className="md:hidden text-secondary" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -91,7 +143,7 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
   );
 };
 
-const Hero = () => {
+const Hero = ({ onPrayersClick }: { onPrayersClick: () => void }) => {
   const [stack, setStack] = useState([
     "/photos/mivtzoim_img_1.JPG.jpeg",
     "/photos/mivtzoim_img_2.JPG.jpeg",
@@ -132,23 +184,60 @@ const Hero = () => {
           transition={{ type: "spring", stiffness: 50, damping: 20 }}
           className="order-2 md:order-1"
         >
-          <div className="mb-3 text-right md:text-right">
-            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest mb-1">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-3 text-right md:text-right flex items-center justify-end gap-2"
+          >
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Flame size={16} className="text-primary" />
+            </motion.div>
+            <span className="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">
               קמפיין שותפות תשפ"ו
             </span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-secondary mb-3 leading-[0.9] tracking-tighter text-right">
+          </motion.div>
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-black text-secondary mb-3 leading-[0.9] tracking-tighter text-right"
+          >
             אייננעמען די <br />
             <span className="text-primary italic">וועלט!</span>
-          </h2>
-          <p className="text-base sm:text-lg text-gray-600 mb-5 leading-relaxed max-w-lg text-right ml-auto md:ml-0">
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="text-base sm:text-lg text-gray-600 mb-5 leading-relaxed max-w-lg text-right ml-auto md:ml-0"
+          >
             יחד עם תלמידי ישיבת תומכי תמימים קרית גת, אנו יוצאים למבצע כיבוש העולם באור התורה והחסידות. השותפות שלך היא הכוח שלנו להמשיך ולהפיץ.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-start">
-            <a href="#donate" className="bg-primary text-white px-6 py-4 rounded-xl font-black text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2">
-              אני רוצה להיות שותף <ArrowLeft size={18} />
-            </a>
-          </div>
+          </motion.p>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="flex flex-wrap gap-3 justify-start"
+          >
+            <motion.a 
+              href="#donate" 
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              className="bg-primary text-white px-8 py-5 rounded-2xl font-black text-lg sm:text-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-3"
+            >
+              אני רוצה להיות שותף <ArrowLeft size={22} />
+            </motion.a>
+            <button 
+              onClick={onPrayersClick}
+              className="md:hidden bg-secondary text-white px-6 py-4 rounded-xl font-black text-sm sm:text-base shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2"
+            >
+              סדר הנחת תפילין <BookOpen size={18} />
+            </button>
+          </motion.div>
         </motion.div>
 
         <div className="relative h-[350px] sm:h-[450px] md:h-[500px] flex items-center justify-center mt-8 md:mt-0 order-1 md:order-2">
@@ -172,6 +261,17 @@ const Hero = () => {
                 >
                   <img src={src} alt="Mivtzoim" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
+                  {index === 2 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5 }}
+                      className="absolute bottom-6 right-6 bg-white p-2 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 z-20 min-w-[60px]"
+                    >
+                      <img src="/logos/icon.png" alt="Icon" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                      <span className="text-[10px] font-black uppercase tracking-tighter text-secondary">kiryat gat</span>
+                    </motion.div>
+                  )}
                 </motion.div>
               );
             })}
@@ -227,7 +327,34 @@ const HanukkahHero = () => {
   ];
 
   return (
-    <section className="py-8 bg-linear-to-br from-orange-500 to-yellow-600 relative overflow-hidden">
+    <section className="py-16 bg-linear-to-br from-orange-600 via-orange-500 to-yellow-600 relative overflow-hidden">
+      {/* Animated Background Sparks */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ 
+              opacity: 0, 
+              x: Math.random() * 100 + "%", 
+              y: Math.random() * 100 + "%",
+              scale: Math.random() * 0.5 + 0.5
+            }}
+            animate={{ 
+              opacity: [0, 0.4, 0],
+              y: ["0%", "-20%"],
+              scale: [1, 1.2, 1]
+            }}
+            transition={{ 
+              duration: Math.random() * 3 + 2, 
+              repeat: Infinity, 
+              delay: Math.random() * 5,
+              ease: "easeInOut"
+            }}
+            className="absolute w-1 h-1 bg-yellow-200 rounded-full blur-[1px]"
+          />
+        ))}
+      </div>
+
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute top-0 left-0 w-full h-full" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
       </div>
@@ -238,31 +365,43 @@ const HanukkahHero = () => {
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-right"
           >
-            <div className="flex items-center justify-start gap-3 mb-3">
+            <div className="flex items-center justify-start gap-3 mb-6">
               <motion.div 
                 animate={{ 
-                  y: [0, -5, 0],
-                  scale: [1, 1.05, 1]
+                  y: [0, -8, 0],
+                  scale: [1, 1.1, 1],
+                  boxShadow: [
+                    "0 0 0px rgba(255,255,255,0)",
+                    "0 0 20px rgba(255,255,255,0.4)",
+                    "0 0 0px rgba(255,255,255,0)"
+                  ]
                 }}
                 transition={{ 
-                  duration: 3,
+                  duration: 2.5,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center text-white"
+                className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white backdrop-blur-md border border-white/30"
               >
-                <Flame size={24} />
+                <Flame size={28} className="drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
               </motion.div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white">סיכום פעילות חנוכה</h2>
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">סיכום פעילות חנוכה</h2>
             </div>
             
-            <p className="text-base sm:text-lg text-white/90 leading-relaxed mb-6 font-medium">
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="text-lg sm:text-xl text-white/90 leading-relaxed mb-8 font-medium max-w-xl"
+            >
               במהלך ימי החנוכה, תלמידי הישיבה יצאו לפעילות חנוכה רחבת היקף בערי הדרום ובבסיסי צה"ל בדרום הארץ ועוטף עזה. התלמידים הגיעו למוצבים מרוחקים, שטחי כינוס, כשהם מצוידים במאות חנוכיות, אלפי סופגניות חמות והרבה שמחה חסידית.
-            </p>
+            </motion.p>
 
-            <div className="grid grid-cols-3 gap-3 mb-8">
+            <div className="grid grid-cols-3 gap-4 mb-8">
               {[
                 { label: "חנוכיות", value: "500+" },
                 { label: "סופגניות", value: "1,000+" },
@@ -270,46 +409,65 @@ const HanukkahHero = () => {
               ].map((stat, i) => (
                 <motion.div 
                   key={i}
-                  initial={{ opacity: 0, y: 30, scale: 0.5 }}
+                  initial={{ opacity: 0, y: 30, scale: 0.8 }}
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ 
                     type: "spring",
-                    stiffness: 120,
-                    delay: i * 0.1 
+                    stiffness: 150,
+                    damping: 12,
+                    delay: 0.3 + (i * 0.1) 
                   }}
-                  className="bg-white/10 backdrop-blur-sm p-3 rounded-2xl border border-white/20 text-center"
+                  whileHover={{ y: -5, scale: 1.05 }}
+                  className="bg-white/15 backdrop-blur-md p-4 rounded-2xl border border-white/25 text-center shadow-lg group"
                 >
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-white mb-0.5">{stat.value}</div>
-                  <div className="text-[10px] sm:text-xs font-bold text-white/70 uppercase tracking-widest">{stat.label}</div>
+                  <div className="text-2xl sm:text-3xl font-black text-white mb-1 group-hover:text-yellow-200 transition-colors">{stat.value}</div>
+                  <div className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-widest">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.9, x: -30 }}
+            whileInView={{ opacity: 1, scale: 1, x: 0 }}
             viewport={{ once: true }}
-            className="grid grid-cols-2 gap-3 max-w-lg mx-auto md:mx-0"
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="grid grid-cols-2 gap-4 max-w-lg mx-auto md:mx-0"
           >
-            <div className="space-y-2">
-              <div className="rounded-[20px] overflow-hidden shadow-lg border-2 border-white/20 aspect-video bg-black/40">
-                <video src="/videos/hanukkah_vid_1.MP4" autoPlay muted loop playsInline className="w-full h-full object-cover" />
-              </div>
-              <DynamicImageSquare 
-                images={[hanukkahImages[0], hanukkahImages[1]]} 
-                className="rounded-[20px] shadow-lg border-2 border-white/20 aspect-square bg-white/5"
-              />
+            <div className="space-y-4">
+              <motion.div 
+                whileHover={{ scale: 1.02, rotate: -1 }}
+                className="rounded-[24px] overflow-hidden shadow-2xl border-2 border-white/30 aspect-video bg-black/40 relative group"
+              >
+                <video src="/videos/hanukkah_vid_1.MP4" autoPlay muted loop playsInline className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.02, rotate: 1 }}
+              >
+                <DynamicImageSquare 
+                  images={[hanukkahImages[0], hanukkahImages[1]]} 
+                  className="rounded-[24px] shadow-2xl border-2 border-white/30 aspect-square bg-white/5"
+                />
+              </motion.div>
             </div>
-            <div className="space-y-2 pt-4">
-              <DynamicImageSquare 
-                images={[hanukkahImages[2], hanukkahImages[3]]} 
-                className="rounded-[20px] shadow-lg border-2 border-white/20 aspect-square bg-white/5"
-              />
-              <div className="rounded-[20px] overflow-hidden shadow-lg border-2 border-white/20 aspect-video bg-black/40">
-                <video src="/videos/hanukkah_vid_2.MP4" autoPlay muted loop playsInline className="w-full h-full object-cover" />
-              </div>
+            <div className="space-y-4 pt-8">
+              <motion.div
+                whileHover={{ scale: 1.02, rotate: -1 }}
+              >
+                <DynamicImageSquare 
+                  images={[hanukkahImages[2], hanukkahImages[3]]} 
+                  className="rounded-[24px] shadow-2xl border-2 border-white/30 aspect-square bg-white/5"
+                />
+              </motion.div>
+              <motion.div 
+                whileHover={{ scale: 1.02, rotate: 1 }}
+                className="rounded-[24px] overflow-hidden shadow-2xl border-2 border-white/30 aspect-video bg-black/40 relative group"
+              >
+                <video src="/videos/hanukkah_vid_2.MP4" autoPlay muted loop playsInline className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </motion.div>
             </div>
           </motion.div>
         </div>
@@ -319,26 +477,25 @@ const HanukkahHero = () => {
 };
 
 const ProgressSection = () => {
-  const [raised, setRaised] = useState(0);
   const percentage = (INITIAL_RAISED / GOAL) * 100;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setRaised(INITIAL_RAISED), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
+  
   return (
     <section className="py-20 bg-secondary text-white relative overflow-hidden">
       {/* Grid Background */}
       <div className="absolute inset-0 opacity-10 pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
       
-      <div className="max-w-5xl mx-auto px-4 relative z-10">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true }}
+        className="max-w-5xl mx-auto px-4 relative z-10"
+      >
         <div className="flex flex-col sm:flex-row justify-between items-end mb-12 gap-6">
           <div className="text-right w-full sm:w-auto">
             <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary mb-2">Fundraising Status</h3>
             <div className="text-5xl sm:text-6xl md:text-7xl font-black font-display leading-none">
-              ₪{raised.toLocaleString()}
+              ₪{INITIAL_RAISED.toLocaleString()}
             </div>
           </div>
           <div className="text-right md:text-left w-full sm:w-auto">
@@ -350,31 +507,34 @@ const ProgressSection = () => {
         <div className="relative h-4 bg-white/10 rounded-full overflow-hidden mb-12">
           <motion.div 
             initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
-            transition={{ duration: 2, ease: "circOut" }}
+            whileInView={{ width: `${percentage}%` }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
             className="absolute top-0 left-0 h-full bg-primary shadow-[0_0_30px_rgba(223,151,38,0.6)]"
           />
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-white/10 pt-12">
-          <div className="text-center md:text-right">
-            <div className="text-4xl font-black font-mono text-primary mb-1">{Math.round(percentage)}%</div>
-            <div className="text-xs uppercase tracking-widest opacity-50">Completed</div>
-          </div>
-          <div className="text-center md:text-right">
-            <div className="text-4xl font-black font-mono text-primary mb-1">1,240</div>
-            <div className="text-xs uppercase tracking-widest opacity-50">Total Donors</div>
-          </div>
-          <div className="text-center md:text-right">
-            <div className="text-4xl font-black font-mono text-primary mb-1">22</div>
-            <div className="text-xs uppercase tracking-widest opacity-50">Days Left</div>
-          </div>
-          <div className="text-center md:text-right">
-            <div className="text-4xl font-black font-mono text-primary mb-1">4.8k</div>
-            <div className="text-xs uppercase tracking-widest opacity-50">Shares</div>
-          </div>
+          {[
+            { label: "Completed", value: `${Math.round(percentage)}%` },
+            { label: "Total Donors", value: "1,240" },
+            { label: "Days Left", value: "22" },
+            { label: "Shares", value: "4.8k" }
+          ].map((item, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 * i }}
+              className="text-center md:text-right"
+            >
+              <div className="text-4xl font-black font-mono text-primary mb-1">{item.value}</div>
+              <div className="text-xs uppercase tracking-widest opacity-50">{item.label}</div>
+            </motion.div>
+          ))}
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
@@ -386,6 +546,7 @@ const DonationGrid = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [showIframe, setShowIframe] = useState(false);
+  const [expandedOption, setExpandedOption] = useState<number | null>(null);
 
   const handleDonate = (amount: number) => {
     setSelectedAmount(amount);
@@ -393,13 +554,32 @@ const DonationGrid = () => {
     setShowIframe(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Save to Google Sheets
+    try {
+      const response = await fetch('/api/donors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName,
+          email,
+          amount: selectedAmount,
+          source: 'תרומה רגילה'
+        }),
+      });
+      const data = await response.json();
+      console.log('Google Sheets response:', data);
+    } catch (error) {
+      console.error('Failed to save donor info:', error);
+    }
+
     setShowIframe(true);
   };
 
   const getMeshulamUrl = () => {
-    const baseUrl = "https://meshulam.co.il/quick_payment?b=6aad8642aa34f01818d7651d225659f9";
+    const baseUrl = "https://meshulam.co.il/quick_payment?b=2c0a751deb063713a9db1fa3b1c11ad2";
     const params = new URLSearchParams({
       sum: selectedAmount?.toString() || '0',
       full_name: fullName,
@@ -418,53 +598,142 @@ const DonationGrid = () => {
   return (
     <section id="donate" className="py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
           <h2 className="text-4xl font-black text-secondary mb-4">בחר את מסלול השותפות שלך</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             כל תרומה, קטנה כגדולה, מצטרפת למפעל האדיר של הפצת המעיינות. בחרו את הסכום המתאים לכם והיו שותפים בכיבוש העולם באור החסידות.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {DONATION_OPTIONS.map((option, i) => (
-            <motion.div
-              key={option.id}
-              initial={{ opacity: 0, y: 100, scale: 0.8 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 100, 
-                damping: 15,
-                delay: i * 0.1 
-              }}
-              whileHover={{ 
-                y: -15, 
-                scale: 1.05,
-                boxShadow: "0 25px 50px -12px rgba(var(--color-primary), 0.25)"
-              }}
-              className={`relative bg-white p-8 rounded-[32px] shadow-lg border-2 transition-all duration-300 ${option.isPopular ? 'border-primary' : 'border-transparent'}`}
-            >
-              {option.isPopular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold">
-                  הכי פופולרי
+        <div className="relative">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+            {DONATION_OPTIONS.map((option, i) => {
+              return (
+                <motion.div
+                  key={option.id}
+                  layoutId={`card-${option.id}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 20,
+                    delay: i * 0.05 
+                  }}
+                  onClick={() => {
+                    if (window.innerWidth < 640) {
+                      setExpandedOption(option.id);
+                    }
+                  }}
+                  className={`relative bg-white p-5 sm:p-8 rounded-2xl sm:rounded-[32px] shadow-lg border-2 transition-all duration-300 ${
+                    window.innerWidth < 640 ? 'cursor-pointer' : 'cursor-default'
+                  } ${
+                    option.isPopular ? 'border-primary ring-2 sm:ring-4 ring-primary/10' : 'border-transparent'
+                  }`}
+                >
+                {option.isPopular && (
+                  <div className="absolute -top-3 sm:-top-6 left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-primary text-white px-3 sm:px-6 py-1 sm:py-2 rounded-full text-[10px] sm:text-sm font-black whitespace-nowrap shadow-md border-1 sm:border-2 border-white">
+                      הכי פופולרי
+                    </div>
+                  </div>
+                )}
+
+                <div className="text-center mb-4 sm:mb-6 relative z-10">
+                  <h4 className="text-base sm:text-xl font-black text-secondary mb-1 leading-tight">{option.title}</h4>
+                  <div className="flex items-center justify-center gap-0.5 sm:gap-1">
+                    <span className="text-sm sm:text-2xl font-bold text-primary">₪</span>
+                    <span className="text-3xl sm:text-5xl font-black text-primary tracking-tighter">{option.amount}</span>
+                  </div>
                 </div>
-              )}
-              <div className="text-center mb-6">
-                <h4 className="text-xl font-bold text-secondary mb-2 whitespace-nowrap">{option.title}</h4>
-                <div className="text-4xl font-black text-primary">₪{option.amount}</div>
-              </div>
-              <p className="text-gray-600 text-sm text-center mb-8 h-12">
-                {option.description}
-              </p>
-              <button 
-                onClick={() => handleDonate(option.amount)}
-                className={`w-full py-3 rounded-xl font-bold transition-all cursor-pointer ${option.isPopular ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'bg-secondary/5 text-secondary hover:bg-secondary/10'}`}
-              >
-                בחר סכום זה
-              </button>
-            </motion.div>
-          ))}
+                
+                <p className="hidden sm:block text-gray-600 text-sm text-center mb-8 h-12 leading-relaxed font-medium">
+                  {option.description}
+                </p>
+
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (window.innerWidth < 640) {
+                      setExpandedOption(option.id);
+                    } else {
+                      handleDonate(option.amount);
+                    }
+                  }}
+                  className={`w-full py-3 sm:py-4 rounded-xl sm:rounded-2xl font-black text-sm sm:text-lg transition-all cursor-pointer relative z-10 ${
+                    option.isPopular 
+                      ? 'bg-primary text-white shadow-md sm:shadow-lg' 
+                      : 'bg-secondary/5 text-secondary hover:bg-secondary/10'
+                  }`}
+                >
+                  בחר
+                </button>
+              </motion.div>
+            );
+          })}
+          </div>
+
+          <AnimatePresence>
+            {expandedOption && window.innerWidth < 640 && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setExpandedOption(null)}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                />
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-none">
+                  <motion.div
+                    layoutId={`card-${expandedOption}`}
+                    className="bg-white p-6 rounded-[32px] shadow-2xl border-2 border-primary w-full max-w-[320px] pointer-events-auto relative"
+                  >
+                    <button 
+                      onClick={() => setExpandedOption(null)}
+                      className="absolute top-4 left-4 text-gray-400 hover:text-secondary transition-colors p-1"
+                    >
+                      <X size={24} />
+                    </button>
+
+                    <div className="text-center mb-6">
+                      <h4 className="text-xl font-black text-secondary mb-2">
+                        {DONATION_OPTIONS.find(o => o.id === expandedOption)?.title}
+                      </h4>
+                      <div className="flex items-center justify-center gap-1">
+                        <span className="text-xl font-bold text-primary">₪</span>
+                        <span className="text-4xl font-black text-primary tracking-tighter">
+                          {DONATION_OPTIONS.find(o => o.id === expandedOption)?.amount}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mb-8">
+                      <p className="text-gray-600 text-sm text-center leading-relaxed font-medium px-2">
+                        {DONATION_OPTIONS.find(o => o.id === expandedOption)?.description}
+                      </p>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        const opt = DONATION_OPTIONS.find(o => o.id === expandedOption);
+                        if (opt) handleDonate(opt.amount);
+                        setExpandedOption(null);
+                      }}
+                      className="w-full py-4 bg-primary text-white rounded-xl font-black text-lg shadow-lg active:scale-95 transition-all cursor-pointer"
+                    >
+                      אני רוצה להיות שותף!
+                    </button>
+                  </motion.div>
+                </div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="mt-12 max-w-xl mx-auto bg-white p-6 rounded-3xl shadow-md border border-gray-100 flex flex-col sm:flex-row items-center gap-4">
@@ -581,7 +850,12 @@ const ImpactSection = () => {
 
   return (
     <section id="impact" className="py-24 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4">
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="max-w-7xl mx-auto px-4"
+      >
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: 50 }}
@@ -606,39 +880,49 @@ const ImpactSection = () => {
                 'מסיבות שבת',
                 'עשרת הדברות בחג השבועות'
               ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-gray-700 font-medium">
+                <motion.li 
+                  key={i}
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 * i }}
+                  className="flex items-center gap-3 text-gray-700 font-medium"
+                >
                   <CheckCircle2 className="text-primary" size={20} />
                   {item}
-                </li>
+                </motion.li>
               ))}
             </ul>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {stats.map((stat, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, scale: 0.5, rotate: -5 }}
-                whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-                viewport={{ once: true }}
-                transition={{ 
-                  type: "spring",
-                  stiffness: 100,
-                  delay: i * 0.1 
-                }}
-                whileHover={{ scale: 1.1, y: -10, rotate: 2 }}
-                className="bg-white p-8 rounded-3xl shadow-xl border border-gray-50 text-center cursor-default"
-              >
-                <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  {stat.icon}
-                </div>
-                <div className="text-3xl font-black text-secondary mb-1">{stat.value}</div>
-                <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
-              </motion.div>
-            ))}
+            {stats.map((stat, i) => {
+              return (
+                <motion.div 
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ 
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 15,
+                    delay: i * 0.1 
+                  }}
+                  whileHover={{ scale: 1.1, y: -10, rotate: 2 }}
+                  className="bg-white p-8 rounded-3xl shadow-xl border border-gray-50 text-center cursor-default"
+                >
+                  <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    {stat.icon}
+                  </div>
+                  <div className="text-3xl font-black text-secondary mb-1">{stat.value}</div>
+                  <div className="text-sm text-gray-500 font-medium">{stat.label}</div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };
@@ -648,23 +932,41 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
     <footer className="bg-secondary text-white pt-20 pb-10" dir="rtl">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 text-right">
-          <div className="col-span-1 sm:col-span-2 flex flex-col items-start md:items-center lg:items-start md:px-12 lg:px-0">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="col-span-1 sm:col-span-2 flex flex-col items-start md:items-center lg:items-start md:px-12 lg:px-0"
+          >
             <img src="/logos/logo1.png" alt="אתה לוגו" className="h-16 w-auto object-contain mb-6" referrerPolicy="no-referrer" />
             <p className="text-gray-300 max-w-md leading-relaxed mb-8 text-right md:text-center lg:text-right">
               איגוד תלמידי הישיבות - ישיבת תומכי תמימים ליובאוויטש קרית גת. 
               פועלים להפצת המעיינות והכנת העולם לקבלת פני משיח צדקנו.
             </p>
             <div className="flex gap-4">
-              <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
+              >
                 <Share2 size={18} />
-              </button>
-              <button className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors">
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.1, rotate: -5 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
+              >
                 <Mail size={18} />
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-start md:items-center lg:items-start">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col items-start md:items-center lg:items-start"
+          >
             <div className="text-right">
               <h5 className="text-lg font-bold mb-6 text-primary">צור קשר</h5>
               <ul className="space-y-4 text-gray-300">
@@ -678,9 +980,14 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
                 </li>
               </ul>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="flex flex-col items-start md:items-center lg:items-start">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-col items-start md:items-center lg:items-start"
+          >
             <div className="text-right">
               <h5 className="text-lg font-bold mb-6 text-primary">ניווט מהיר</h5>
               <ul className="space-y-4 text-gray-300">
@@ -690,7 +997,7 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
                 <li><button onClick={() => { window.scrollTo(0, 0); setView?.('prayers'); }} className="hover:text-primary transition-colors">סדר הנחת תפילין</button></li>
               </ul>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         <div className="pt-8 border-t border-white/10 text-center text-gray-400 text-sm font-medium">
@@ -771,7 +1078,7 @@ const ImageMarquee = () => {
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = `                           ${i}/400/600`;
+                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${i}/400/600`;
                   }}
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
@@ -870,8 +1177,171 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
   );
 };
 
+const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [showIframe, setShowIframe] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleDonate = (amount: number) => {
+    setSelectedAmount(amount);
+    setShowIframe(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Save to Google Sheets
+    try {
+      const option = REVOLUTION_OPTIONS.find(opt => opt.amount === selectedAmount);
+      const response = await fetch('/api/donors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName,
+          email,
+          amount: selectedAmount,
+          source: `מהפכת האור - ${option?.title || 'כללי'}`
+        }),
+      });
+      const data = await response.json();
+      console.log('Google Sheets response:', data);
+    } catch (error) {
+      console.error('Failed to save donor info:', error);
+    }
+
+    setShowIframe(true);
+  };
+
+  const getMeshulamUrl = () => {
+    const baseUrl = "https://meshulam.co.il/quick_payment?b=2c0a751deb063713a9db1fa3b1c11ad2";
+    const params = new URLSearchParams({
+      sum: selectedAmount?.toString() || '0',
+      full_name: fullName,
+      email: email,
+    });
+    return `${baseUrl}&${params.toString()}`;
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : 'max-w-2xl'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
+      >
+        <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
+          <h3 className="text-2xl font-black text-secondary">
+            {showIframe ? 'תשלום מאובטח' : 'אני שותף למהפכת האור!'}
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
+          {showIframe ? (
+            <iframe 
+              src={getMeshulamUrl()}
+              className="w-full h-full border-none min-h-[500px]"
+              title="Meshulam Payment"
+            />
+          ) : selectedAmount ? (
+            <div className="max-w-md mx-auto py-2 sm:py-4">
+              <button 
+                onClick={() => setSelectedAmount(null)}
+                className="flex items-center gap-2 text-primary font-bold mb-4 sm:6 hover:underline"
+              >
+                <ArrowLeft size={16} className="rotate-180" />
+                חזרה לבחירת מסלול
+              </button>
+              
+              <div className="bg-primary/10 p-3 sm:p-4 rounded-2xl mb-4 sm:mb-6 text-center">
+                <div className="text-xs sm:text-sm text-primary font-bold mb-1">סכום התרומה</div>
+                <div className="text-3xl sm:text-4xl font-black text-secondary">₪{selectedAmount.toLocaleString()}</div>
+              </div>
+
+              <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">שם מלא</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full px-4 py-2 sm:py-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none text-sm sm:text-base" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">דוא"ל</label>
+                  <input 
+                    type="email" 
+                    required 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-4 py-2 sm:py-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none text-sm sm:text-base" 
+                  />
+                </div>
+                <div className="pt-2 sm:pt-4">
+                  <button type="submit" className="w-full bg-primary text-white py-3 sm:py-4 rounded-2xl font-black text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all">
+                    המשך לתשלום מאובטח
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+                {REVOLUTION_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    onClick={() => handleDonate(option.amount)}
+                    className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-[32px] border-2 border-gray-100 hover:border-primary hover:shadow-xl transition-all group text-center flex flex-row sm:flex-col items-center gap-4 sm:gap-0"
+                  >
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-primary mb-0 sm:mb-4 group-hover:scale-110 transition-transform shrink-0">
+                      <option.icon size={24} className="sm:hidden" />
+                      <option.icon size={32} className="hidden sm:block" />
+                    </div>
+                    <div className="flex-1 text-right sm:text-center">
+                      <h4 className="text-base sm:text-xl font-black text-secondary mb-0.5 sm:mb-2 leading-tight">{option.title}</h4>
+                      <div className="text-xl sm:text-3xl font-black text-primary mb-1 sm:mb-4 leading-none">₪{option.amount}</div>
+                      <p className="text-[10px] sm:text-sm text-gray-600 leading-tight sm:leading-relaxed">
+                        {option.description}
+                      </p>
+                      {option.subDescription && (
+                        <p className="text-[8px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">{option.subDescription}</p>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={onClose}
+                className="mt-4 w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-sm sm:hidden"
+              >
+                סגור
+              </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 export default function App() {
   const [view, setView] = useState<'home' | 'prayers'>('home');
+  const [isRevolutionModalOpen, setIsRevolutionModalOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -885,7 +1355,7 @@ export default function App() {
     <div className="min-h-screen font-sans" dir="rtl">
       <Navbar onPrayersClick={() => setView('prayers')} />
       <main>
-        <Hero />
+        <Hero onPrayersClick={() => setView('prayers')} />
         <HanukkahHero />
         <ImageMarquee />
         <ImpactSection />
@@ -939,9 +1409,12 @@ export default function App() {
                 <p className="text-lg sm:text-xl opacity-90 mb-10 max-w-2xl mx-auto">
                   היו שותפים בפעילות האדירה של את"ה קרית גת - מבצע תפילין, הפצת אור החסידות, ופעילות חסד ענפה בבסיסי צה"ל ובמרחבי הדרום. יחד נכין את העולם לגאולה!
                 </p>
-                <a href="#donate" className="inline-block w-full sm:w-auto bg-white text-secondary px-12 py-5 rounded-2xl font-black text-xl hover:bg-opacity-90 transition-all shadow-xl">
+                <button 
+                  onClick={() => setIsRevolutionModalOpen(true)}
+                  className="inline-block w-full sm:w-auto bg-white text-secondary px-12 py-5 rounded-2xl font-black text-xl hover:bg-opacity-90 transition-all shadow-xl cursor-pointer"
+                >
                   אני שותף למהפכת האור!
-                </a>
+                </button>
               </div>
               {/* Decorative circles */}
               <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
@@ -949,6 +1422,15 @@ export default function App() {
             </div>
           </div>
         </section>
+
+        <AnimatePresence>
+          {isRevolutionModalOpen && (
+            <RevolutionModal 
+              isOpen={isRevolutionModalOpen} 
+              onClose={() => setIsRevolutionModalOpen(false)} 
+            />
+          )}
+        </AnimatePresence>
       </main>
       <Footer setView={setView} />
     </div>
