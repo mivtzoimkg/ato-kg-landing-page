@@ -103,7 +103,8 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass py-2 shadow-md' : 'bg-transparent py-4'}`}>
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src="/logos/logo.png" alt="אתה לוגו" className="h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+          <img src="/logos/logo.png" alt="אתה לוגו" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
+          <img src="/logos/logo 15.png" alt="לוגו נוסף" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
           <div className="hidden sm:block">
             <h1 className="text-lg font-bold text-secondary leading-tight">איגוד תלמידי הישיבות</h1>
             <p className="text-xs text-gray-600">קרית גת</p>
@@ -268,7 +269,7 @@ const Hero = ({ onPrayersClick }: { onPrayersClick: () => void }) => {
                       transition={{ delay: 0.5 }}
                       className="absolute bottom-6 right-6 bg-white p-2 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 z-20 min-w-[60px]"
                     >
-                      <img src="/logos/icon.png" alt="Icon" className="w-8 h-8 object-contain" referrerPolicy="no-referrer" />
+                      <img src="/logos/icon.png" alt="Icon" className="w-6 h-6 object-contain" referrerPolicy="no-referrer" />
                       <span className="text-[10px] font-black uppercase tracking-tighter text-secondary">kiryat gat</span>
                     </motion.div>
                   )}
@@ -938,7 +939,7 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
             viewport={{ once: true }}
             className="col-span-1 sm:col-span-2 flex flex-col items-start md:items-center lg:items-start md:px-12 lg:px-0"
           >
-            <img src="/logos/logo1.png" alt="אתה לוגו" className="h-16 w-auto object-contain mb-6" referrerPolicy="no-referrer" />
+            <img src="/logos/logo1.png" alt="אתה לוגו" className="h-12 w-auto object-contain mb-6" referrerPolicy="no-referrer" />
             <p className="text-gray-300 max-w-md leading-relaxed mb-8 text-right md:text-center lg:text-right">
               איגוד תלמידי הישיבות - ישיבת תומכי תמימים ליובאוויטש קרית גת. 
               פועלים להפצת המעיינות והכנת העולם לקבלת פני משיח צדקנו.
@@ -1102,7 +1103,10 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
             <ArrowLeft size={20} className="rotate-180" />
             חזרה לדף הבית
           </button>
-          <img src="/logos/logo.png" alt="אתה לוגו" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
+          <div className="flex items-center gap-2">
+            <img src="/logos/logo.png" alt="אתה לוגו" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+            <img src="/logos/logo 15.png" alt="לוגו נוסף" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+          </div>
         </div>
       </nav>
 

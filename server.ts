@@ -2,6 +2,7 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
+import axios from "axios";
 
 dotenv.config();
 
@@ -13,7 +14,7 @@ async function startServer() {
 
   // API routes
   app.get("/api/test-sheets", async (req, res) => {
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL;
+    const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
     if (scriptUrl) {
       return res.json({ 
         status: "success", 
@@ -27,33 +28,43 @@ async function startServer() {
   app.post("/api/donors", async (req, res) => {
     const { fullName, email, amount, source } = req.body;
     
+    // Default to the provided script URL if ENV is missing
     const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
     
     try {
-      console.log(`Attempting to save donor via Script: ${fullName} (${amount} NIS)`);
-      const response = await fetch(scriptUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        redirect: "follow", // CRITICAL for Google Apps Script
-        body: JSON.stringify({
-          date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-          fullName,
-          email,
-          amount,
-          source: source || "תרומה רגילה"
-        }),
+      console.log(`[Spreadsheet] Attempting to save donor: ${fullName} (${amount} NIS)`);
+      
+      const payload = {
+        date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+        fullName,
+        email: email || "N/A",
+        amount,
+        source: source || "תרומה רגילה"
+      };
+
+      // Using axios because it handles Google's 302 redirects more robustly than native fetch in Node.js
+      const response = await axios.post(scriptUrl, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        maxRedirects: 5,
+        timeout: 10000 // 10s timeout
       });
       
-      if (response.ok) {
-        console.log(`Successfully saved donor via Script: ${fullName}`);
-        return res.json({ status: "success", method: "apps-script" });
-      } else {
-        const errorText = await response.text();
-        console.error(`Apps Script Error (${response.status}):`, errorText);
-        throw new Error(`Apps Script returned ${response.status}`);
-      }
+      console.log(`[Spreadsheet] Response from script:`, response.data);
+      
+      return res.json({ 
+        status: "success", 
+        method: "apps-script",
+        scriptResponse: response.data
+      });
+
     } catch (error: any) {
-      console.error("Error saving to Google Script:", error.message);
+      console.error("[Spreadsheet] Critical Error:", error.message);
+      if (error.response) {
+        console.error("[Spreadsheet] Response data:", error.response.data);
+      }
+      
       res.status(500).json({ 
         status: "error", 
         message: "Failed to save to Google Sheets via Script",
