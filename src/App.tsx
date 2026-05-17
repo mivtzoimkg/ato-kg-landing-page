@@ -103,7 +103,7 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass py-2 shadow-md' : 'bg-transparent py-4'}`}>
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <img src="/logos/logo.png" alt="אתה לוגו" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
+          <img src="/logos/logo.png" alt="אתה לוגו" className="h-14 w-auto object-contain" referrerPolicy="no-referrer" />
           <img src="/logos/logo 15.png" alt="לוגו נוסף" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
           <div className="hidden sm:block">
             <h1 className="text-lg font-bold text-secondary leading-tight">איגוד תלמידי הישיבות</h1>
@@ -1104,7 +1104,7 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
             חזרה לדף הבית
           </button>
           <div className="flex items-center gap-2">
-            <img src="/logos/logo.png" alt="אתה לוגו" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+            <img src="/logos/logo.png" alt="אתה לוגו" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
             <img src="/logos/logo 15.png" alt="לוגו נוסף" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
           </div>
         </div>
