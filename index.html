@@ -5,13 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>איגוד תלמידי הישיבות - קרית גת</title>
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GOOGLE_TAG_ID%"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+      (function() {
+        const tagId = '%VITE_GOOGLE_TAG_ID%';
+        if (tagId && tagId !== '%VITE_GOOGLE_TAG_ID' + '%') {
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://www.googletagmanager.com/gtag/js?id=' + tagId;
+          document.head.appendChild(script);
 
-      gtag('config', '%VITE_GOOGLE_TAG_ID%');
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', tagId);
+        }
+      })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

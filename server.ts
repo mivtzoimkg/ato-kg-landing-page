@@ -30,6 +30,7 @@ async function startServer() {
     
     // Default to the provided script URL if ENV is missing
     const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+    console.log(`[Spreadsheet] Using Script URL starting with: ${scriptUrl.substring(0, 35)}...`);
     
     try {
       console.log(`[Spreadsheet] Attempting to save donor: ${fullName} (${amount} NIS)`);
@@ -61,14 +62,22 @@ async function startServer() {
 
     } catch (error: any) {
       console.error("[Spreadsheet] Critical Error:", error.message);
-      if (error.response) {
+      
+      let errorMessage = "Failed to save to Google Sheets via Script";
+      let details = error.message;
+
+      if (error.response && error.response.status === 403) {
+        console.error("[Spreadsheet] Access Denied (403). Make sure the Apps Script is deployed as 'Anyone'.");
+        errorMessage = "שגיאת הרשאות בגוגל (403)";
+        details = "עליך להגדיר את ה-Apps Script שיהיה נגיש ל-Anyone (כולל משתמשים אנונימיים) בתפריט ה-Deploy.";
+      } else if (error.response) {
         console.error("[Spreadsheet] Response data:", error.response.data);
       }
       
       res.status(500).json({ 
         status: "error", 
-        message: "Failed to save to Google Sheets via Script",
-        details: error.message 
+        message: errorMessage,
+        details: details
       });
     }
   });

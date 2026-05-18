@@ -102,7 +102,7 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'glass py-2 shadow-md' : 'bg-transparent py-4'}`}>
       <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
           <img src="/logos/logo.png" alt="אתה לוגו" className="h-14 w-auto object-contain" referrerPolicy="no-referrer" />
           <img src="/logos/logo 15.png" alt="לוגו נוסף" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
           <div className="hidden sm:block">
@@ -583,10 +583,16 @@ const DonationGrid = () => {
     const baseUrl = "https://meshulam.co.il/quick_payment?b=2c0a751deb063713a9db1fa3b1c11ad2";
     const params = new URLSearchParams({
       sum: selectedAmount?.toString() || '0',
+      amount: selectedAmount?.toString() || '0',
+      c_name: fullName,
       full_name: fullName,
+      c_email: email,
       email: email,
+      description: `תרומה לאיגוד תלמידי הישיבות - ${fullName}`,
     });
-    return `${baseUrl}&${params.toString()}`;
+    const finalUrl = `${baseUrl}&${params.toString()}`;
+    console.log('[DonationGrid] Meshulam URL:', finalUrl);
+    return finalUrl;
   };
 
   const handleCustomDonate = () => {
@@ -789,6 +795,7 @@ const DonationGrid = () => {
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {showIframe ? (
                   <iframe 
+                    key={getMeshulamUrl()}
                     src={getMeshulamUrl()}
                     className="w-full h-full border-none min-h-[500px]"
                     title="Meshulam Payment"
@@ -1103,7 +1110,7 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
             <ArrowLeft size={20} className="rotate-180" />
             חזרה לדף הבית
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.location.href = '/'}>
             <img src="/logos/logo.png" alt="אתה לוגו" className="h-10 w-auto object-contain" referrerPolicy="no-referrer" />
             <img src="/logos/logo 15.png" alt="לוגו נוסף" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
           </div>
@@ -1221,10 +1228,16 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     const baseUrl = "https://meshulam.co.il/quick_payment?b=2c0a751deb063713a9db1fa3b1c11ad2";
     const params = new URLSearchParams({
       sum: selectedAmount?.toString() || '0',
+      amount: selectedAmount?.toString() || '0',
+      c_name: fullName,
       full_name: fullName,
+      c_email: email,
       email: email,
+      description: `תרומה לאיגוד תלמידי הישיבות - ${fullName}`,
     });
-    return `${baseUrl}&${params.toString()}`;
+    const finalUrl = `${baseUrl}&${params.toString()}`;
+    console.log('[RevolutionModal] Meshulam URL:', finalUrl);
+    return finalUrl;
   };
 
   if (!isOpen) return null;
@@ -1256,6 +1269,7 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
           {showIframe ? (
             <iframe 
+              key={getMeshulamUrl()}
               src={getMeshulamUrl()}
               className="w-full h-full border-none min-h-[500px]"
               title="Meshulam Payment"
