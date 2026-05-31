@@ -1,5 +1,6 @@
 {
   "name": "Remix: את\"ה - קמפיין התרמה",
   "description": "אתר נחיתה להתרמת כספים עבור איגוד תלמידי הישיבות (את\"ה) - ישיבת תומכי תמימים קרית גת",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

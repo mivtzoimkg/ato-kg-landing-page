@@ -18,7 +18,10 @@ import {
   Zap,
   Bus,
   Store,
-  Newspaper
+  Newspaper,
+  CreditCard,
+  Smartphone,
+  ExternalLink
 } from 'lucide-react';
 
 // --- Types ---
@@ -33,9 +36,21 @@ interface DonationOption {
 // --- Constants ---
 const DONATION_OPTIONS: DonationOption[] = [
   { 
+    id: 5, 
+    amount: 20, 
+    title: "שותף ידיד", 
+    description: "שותף בזכויות זיכוי הרבים",
+  },
+  { 
+    id: 6, 
+    amount: 50, 
+    title: "שותף צעיר", 
+    description: "לוקחים חלק בזכות הגדולה של זיכוי הרבים!",
+  },
+  { 
     id: 1, 
     amount: 180, 
-    title: "שותף צעיר", 
+    title: "זיכוי הרבים", 
     description: "תמיכה בפעילות שבועית אחת של תלמיד בישיבה",
   },
   { 
@@ -548,11 +563,13 @@ const DonationGrid = () => {
   const [email, setEmail] = useState('');
   const [showIframe, setShowIframe] = useState(false);
   const [expandedOption, setExpandedOption] = useState<number | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'bit'>('credit_card');
 
   const handleDonate = (amount: number) => {
     setSelectedAmount(amount);
     setIsModalOpen(true);
     setShowIframe(false);
+    setPaymentMethod('credit_card'); // Reset to credit card by default
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -567,7 +584,7 @@ const DonationGrid = () => {
           fullName,
           email,
           amount: selectedAmount,
-          source: 'תרומה רגילה'
+          source: paymentMethod === 'bit' ? 'תרומה בביט - תרומה רגילה' : 'תרומה רגילה'
         }),
       });
       const data = await response.json();
@@ -618,7 +635,7 @@ const DonationGrid = () => {
         </motion.div>
 
         <div className="relative">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6">
             {DONATION_OPTIONS.map((option, i) => {
               return (
                 <motion.div
@@ -781,11 +798,11 @@ const DonationGrid = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : 'max-w-md'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
+              className={`relative bg-white w-full ${showIframe && paymentMethod === 'credit_card' ? 'max-w-3xl h-[85vh]' : 'max-w-md'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                 <h3 className="text-2xl font-black text-secondary">
-                  {showIframe ? 'תשלום מאובטח' : 'פרטי תרומה'}
+                  {showIframe ? (paymentMethod === 'bit' ? 'מעבר ל-Bit' : 'תשלום מאובטח') : 'פרטי תרומה'}
                 </h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                   <X size={24} />
@@ -794,12 +811,52 @@ const DonationGrid = () => {
 
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {showIframe ? (
-                  <iframe 
-                    key={getMeshulamUrl()}
-                    src={getMeshulamUrl()}
-                    className="w-full h-full border-none min-h-[500px]"
-                    title="Meshulam Payment"
-                  />
+                  paymentMethod === 'credit_card' ? (
+                    <iframe 
+                      key={getMeshulamUrl()}
+                      src={getMeshulamUrl()}
+                      className="w-full h-full border-none min-h-[500px]"
+                      title="Meshulam Payment"
+                    />
+                  ) : (
+                    <div className="p-8 text-center flex flex-col items-center justify-center min-h-[450px]">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 animate-pulse">
+                        <Smartphone size={32} />
+                      </div>
+                      
+                      <h4 className="text-xl font-black text-secondary mb-3">מעבר לתשלום באפליקציית Bit</h4>
+                      <p className="text-gray-600 mb-6 max-w-sm mx-auto leading-relaxed text-sm">
+                        פרטי התרומה נרשמו בהצלחה במערכת! 
+                        <br />
+                        כעת, כדי להשלים את התרומה בסך של
+                        <span className="font-black text-primary block text-3xl my-2">₪{selectedAmount?.toLocaleString()}</span>
+                        לחצו על הכפתור למטה כדי לעבור לתשלום מאובטח באפליקציית Bit.
+                      </p>
+
+                      <a 
+                        href={(import.meta as any).env.VITE_BIT_PAYMENT_URL || "https://www.bitpay.co.il/app/bitcom-info?i=94DB91F1-8DFB-42E5-9A30-2E527387E620&j=6648F0A0-62EF-45D0-9205-55B54183B3EB%26return_scheme%3Dhttps%253A%252F%252Fmeshulam.co.il%252F%2525D7%2525A1%2525D7%252599%2525D7%25259ם_%2525D7%2525AA%2525D7%2525A9%2525D7%25259C%2525D7%252595%2525D7%25259D_%2525D7%252591%2525D7%252599%2525D7%252598%253Fdata%253DSk1iWXlEaDl1WWdzV3hHTXhnTG1odXFZalZWNnFSeTBXNU5mOGhBbmZ5NU9JMER1Y3oxN2FSbnJVajdkWkExUE14aUErQzFPSGlhV2FJNW9Hc3BhNHkzcXVXcHlnVnMrc1VndVRMMTVXMUQ1Q3p1d1ExdTZ2dXA5MW5hbURGTFM2TkV0RnRzNStoZVhFYkc2SGUxNWRiZlJRR3hsMmdEUElnZXVaUThBZldERGlKTHFiQVpOT2NTZGFPSTlMMVJIUjRmVEYrZ1JBak5jUWtUdy9lZ1pzSkJid0VvSU45YWs5OGtENit1S2RnNnZpMGdLbjV0TlpTNjZ6SkJ4a21jNw%253D%253D"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full max-w-xs bg-[#00b0f0] hover:bg-[#009cd6] text-white py-3.5 px-6 rounded-2xl font-black text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
+                      >
+                        <span>מעבר ל-Bit להשלמת התרומה</span>
+                        <ExternalLink size={18} />
+                      </a>
+
+                      <button 
+                        onClick={() => setShowIframe(false)}
+                        className="mt-6 text-gray-500 hover:text-gray-800 text-sm font-bold underline transition-colors cursor-pointer"
+                      >
+                        חזרה ושינוי פרטים / אופן תשלום
+                      </button>
+                      
+                      <div className="mt-8 pt-4 border-t border-gray-100 w-full text-center">
+                        <p className="text-[10px] text-gray-400">
+                          לאחר סיום ההעברה ב-Bit, אנא וודאו שקיבלתם אישור באפליקציה.
+                        </p>
+                      </div>
+                    </div>
+                  )
                 ) : (
                   <div className="p-8">
                     <div className="bg-primary/10 p-4 rounded-2xl mb-6 text-center">
@@ -808,6 +865,41 @@ const DonationGrid = () => {
                     </div>
 
                     <form className="space-y-4" onSubmit={handleSubmit}>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">אופן תשלום</label>
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('credit_card')}
+                            className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                              paymentMethod === 'credit_card'
+                                ? 'border-primary bg-primary/5 text-secondary shadow-sm font-extrabold'
+                                : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
+                            }`}
+                          >
+                            <CreditCard size={20} className={paymentMethod === 'credit_card' ? 'text-primary' : 'text-gray-400'} />
+                            <span className="text-xs">כרטיס אשראי</span>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => setPaymentMethod('bit')}
+                            className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
+                              paymentMethod === 'bit'
+                                ? 'border-primary bg-primary/5 text-secondary shadow-sm font-extrabold'
+                                : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'
+                            }`}
+                          >
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[10px] transition-colors ${
+                              paymentMethod === 'bit' ? 'bg-[#00b0f0] text-white' : 'bg-gray-200 text-gray-400'
+                            }`}>
+                              bit
+                            </span>
+                            <span className="text-xs">אפליקציית Bit</span>
+                          </button>
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1">שם מלא</label>
                         <input 
@@ -829,12 +921,12 @@ const DonationGrid = () => {
                         />
                       </div>
                       <div className="pt-4">
-                        <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl transition-all">
-                          המשך לתשלום מאובטח
+                        <button type="submit" className="w-full bg-primary text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl transition-all cursor-pointer">
+                          {paymentMethod === 'bit' ? 'המשך לתרומה ב-Bit' : 'המשך לתשלום מאובטח'}
                         </button>
                       </div>
                       <p className="text-[10px] text-gray-400 text-center">
-                        התשלום מאובטח בתקן PCI-DSS. פרטי האשראי אינם נשמרים במערכת.
+                        {paymentMethod === 'bit' ? 'לאחר הלחיצה תועברו להשלמת ההעברה בביט באופן מאובטח.' : 'התשלום מאובטח בתקן PCI-DSS. פרטי האשראי אינם נשמרים במערכת.'}
                       </p>
                     </form>
                   </div>
@@ -1155,21 +1247,21 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
               </p>
               <p className="text-justify [text-align-last:center]">
                 <span className="float-right text-4xl font-black text-secondary ml-3 mb-1 leading-none">וְהָיָה</span>
-                אִם שָׁמעַֹ תִּשְׁמְעוּ אֶל מִצְוֹתַי אֲשֶׁר אָנכִֹי מְצַוֶּה אֶתְכֶם הַיּוֹם, לְאַהֲבָה אֶת אֲ-דנָֹי אֱ-לֹהֵיכֶם וּלְעָבְדוֹ, בְּכָל לְבַבְכֶם וּבְכָל נַפְשְׁכֶם: וְנָתתִּי מְטַר אַרְצְכֶם בְּעִתּוֹ יוֹרֶה וּמַלְקוֹשׁ, וְאָסַפְתָּ דְגָנֶךָ וְתִירשְֹׁךָ וְיִצְהָרֶךָ: וְנָתַתִּי עֵשֶׂב בְּשָׂדְךָ לִבְהֶמְתֶּךָ, וְאָכַלְתָּ וְשָׂבָעְתָּ: הִשָּׁמְרוּ לָכֶם פֶּן יִפְתֶּה לְבַבְכֶם, וְסַרְתֶּם וַעֲבַדְתֶּם אֱלֹהִים אֲחֵרִים וְהִשְׁתַּחֲוִיתֶם לָהֶם: וְחָרָה אַף אֲ-דנָֹי בָּכֶם וְעָצַר אֶת הַשָּׁמַיִם וְלֹא יִהְיֶה מָטָר וְהָאֲדָמָה לֹא תִתֵּן אֶת יְבוּלָהּ, וַאֲבַדְתֶּם מְהֵרָה מֵעַל הָאָרֶץ הַטּבָֹה אֲשֶׁר אֲ-דנָֹי נתֵֹן לָכֶם: וְשַׂמְתֶּם אֶת דְּבָרַי אֵלֶּה עַל לְבַבְכֶם וְעַל נַפְשְׁכֶם, וּקְשַׁרְתֶּם אתָֹם לְאוֹת עַל יֶדְכֶם וְהָיוּ לְטוֹטָפתֹ בֵּין עֵינֵיכֶם: וְלִמַּדְתֶּם אתָֹם אֶת בְּנֵיכֶם לְדַבֵּר בָּם, בְּשִׁבְתְּךָ בְּבֵיתֶךָ וּבְלֶכְתְּךָ בַדֶּרֶךְ וּבְשָׁכְבְּךָ וּבְקוּמֶךָ: וּכְתַבְתָּם עַל מְזוּזוֹת בֵּיתֶךָ וּבִשְׁעָרֶיךָ: לְמַעַן יִרְבּוּ יְמֵיכֶם וִימֵי בְנֵיכֶם עַל הָאֲדָמָה אֲשֶׁר נִשְׁבַּע אֲ-דנָֹי לַאֲבתֵֹיכֶם לָתֵת לָהֶם, כִּימֵי הַשָּׁמַיִם עַל הָאָרֶץ:
+                אִם שָׁמעַֹ תִּשְׁמְעוּ אֶל מִצְוֹתַי אֲשֶׁר אָנכִֹי מְצַוֶּה אֶתְכֶם הַיּוֹם, לְאַהֲבָה אֶת אֲ-דנָֹי אֱ-לֹהֵיכֶם וּלְעָבְדוֹ, בְּכָל לְבַבְכֶם וּבְכָל נַפְשְׁכֶם: וְנָתתִּי מְטַר אַרְצְכֶם בְּעִתּוֹ יוֹרֶה וּמַלְקוֹשׁ, וְאָסַפְתָּ דְגָנֶךָ וְתִירשְֹׁךָ וְיִצְהָרֶךָ: וְנָתַתִּי עֵשֶׂב בְּשָׂדְךָ לִבְהֶמְתֶּךָ, וְאָכַלְתָּ וְשָׂבָעְתָּ: הִשָּׁמְרוּ לָכֶם פֶּן יִפְתֶּה לְבַבְכֶם, וְסַרְתֶּם וַעֲבַדְתֶּם אֱלֹהִים אֲחֵרִים וְהִשְׁתַּחֲוִיתֶם לָהֶם: וְחָרָה אַף אֲ-דנָֹי בָּכֶם וְעָצַר אֶת הַשָּׁמַיִם וְלֹא יִהְיֶה מָטָר וְהָאֲדָמָה לֹא תִתֵּן אֶת יְבוּלָהּ, וַאֲבַדְתֶּם מְהֵרָה מֵעַל הָאָרֶץ הַטּבָֹה אֲשֶׁר אֲ-דנָֹי נתֵֹן לָכֶם: וְשַׂמְתֶּם אֶת דְּבָרַי אֵלֶּה עַל לְבַבְכֶם וְעַל נַפְשְׁכֶם, וּקְשַׁרְתָּם אתָֹם לְאוֹת עַל יֶדְכֶם וְהָיוּ לְטוֹטָפתֹ בֵּין עֵינֵיכֶם: וְלִמַּדְתֶּם אתָֹם אֶת בְּנֵיכֶם לְדַבֵּר בָּם, בְּשִׁבְתְּךָ בְּבֵיתֶךָ וּבְלֶכְתְּךָ בַדֶּרֶךְ וּבְשָׁכְבְּךָ וּבְקוּמֶךָ: וּכְתַבְתָּם עַל מְזוּזוֹת בֵּיתֶךָ וּבִשְׁעָרֶיךָ: לְמַעַן יִרְבּוּ יְמֵיכֶם וִימֵי בְנֵיכֶם עַל הָאֲדָמָה אֲשֶׁר נִשְׁבַּע אֲ-דנָֹי לַאֲבתֵֹיכֶם לָתֵת לָהֶם, כִּימֵי הַשָּׁמַיִם עַל הָאָרֶץ:
               </p>
               <p className="text-justify [text-align-last:center]">
                 <span className="float-right text-4xl font-black text-secondary ml-3 mb-1 leading-none">וַיֹּאמֶר</span>
-                אֲ-דנָֹי אֶל משֶֹׁה לֵּאמרֹ: דַּבֵּר אֶל בְּנֵי יִשְׂרָאֵל וְאָמַרְתָּ אֲלֵהֶם וְעָשׂוּ לָהֶם צִיצִת עַל כַּנְפֵי בִגְדֵיהֶם לְדרֹתָֹם, וְנָתְנוּ עַל צִיצִת הַכָּנף פְּתִיל תְּכֵלֶת: וְהָיָה לָכֶם לְצִיצִת וּרְאִיתֶם אתֹוֹ, וּזְכַרְתֶּם אֶת כָּל מִצְוֹת אֲ-דנָֹי וַעֲשִׂיתֶם אתָֹם, וְלֹא תָתוּרוּ אַחֲרֵי לְבַבְכֶם וְאַחֲרֵי עֵינֵיכֶם אֲשֶׁר אַתֶּם זנִֹים אַחֲרֵיהֶם: לְמַעַן תִּזְכְּרוּ וַעֲשִׂיתֶם אֶת כָּל מִצְוֹתָי, וִהְיִיתֶם קְדשִֹׁים לֵאלֹהֵיכֶם: אֲנִי אֲ-דנָֹי אֱלֹהֵיכֶם אֲשֶׁר הוֹצֵאתִי אֶתְכֶם מֵאֶרֶץ מִצְרַיִם לִהְיוֹת לָכֶם לֵאלֹהִים, אֲנִי אֲ-דנָֹי אֱלֹהֵיכֶם אֲנִי אֲ-דנָֹי אֱ-לֹהֵיכֶם: (אֱמֶת:)
+                אֲ-דנָֹי אֶל משֶֹׁה לֵּאמרֹ: דַּבֵּר אֶל בְּנֵי יִשְׂרָאֵל וְאָמַרְתָּ אֲלֵהֶם וְעָשׂוּ לָהֶם צִיצִת עַל כַּנְפֵי בִגְדֵיהֶם לְדרֹתָֹם, וְנָתְנוּ עַל צִיצִת הַכָּנף פְּתִיל תְּכֵלֶת: וְהָיָה לָכֶם לְצִיצִת וּרְאִיתֶם אתֹוֹ, וּזְכַרְתֶּם אֶת כָּל מִצְוֹת אֲ-דנָֹי וַעֲשִׂיתֶם אתָֹם, וְלֹא תָתוּרוּ אַחֲרֵי לְבַבְכֶם וְאַחֲרֵי עֵינֵיכֶם אֲשֶׁר אַתֶּם זנִֹים אַחֲרֵיהֶם: לְמַעַן תִּזְכְּרוּ וַעֲשִׂיתֶם אֶת כָּל מִצְוֹתָי, וִהְיִיתֶם קְדשִֹׁים לֵאלֹהֵיכֶם: אֲנִי אֲ-דנָֹי אֱלֹהֵיכֶם אֲשֶׁר הוֹצֵאתִי אֶתְכֶם מֵאֶרֶץ מִצְרַיִם לִהְיוֹת לָכֶם לֵאלֹהִים, אֲנִי אֲ-דנָֹי אֱלֹהֵיכֶם אֲנִי אֲ-דנָֹי אֱ-לֹהֵיכֶם: (אֱמֶת:)
               </p>
             </section>
 
             <section className="pt-8 border-t border-primary/20">
               <p className="text-lg italic mb-4">בסיום התפילה יש לומר:</p>
               <p className="text-xl md:text-2xl font-serif mb-2">
-                יְהִי רָצוֹן מִלְּפָנֶיךָ אֲ־דֹנָי אֱלהֵינוּ וֵאלהֵי אֲבוֹתֵינוּ, שֶׁיִבָּנֶה בֵּית הַמִקְדָּשׁ בִּמְהֵרָה בְיָמֵינוּ, וְתֵן חֶלְקֵנוּ בְּתוֹרָתֶךָ.
+                יְהִי רָצוֹן מִלְּפָנֶיךָ אֲ־דֹנָי אֱלֹהֵינוּ וֵאלֹהֵי אֲבוֹתֵינוּ, שֶׁיִּבָּנֶה בֵּית הַמִּקְדָּשׁ בִּמְהֵרה בְּיָמֵינוּ, וְתֵן חֶלְקֵנוּ בְּתוֹרָתֶךָ.
               </p>
               <p className="text-xl md:text-2xl font-serif">
-                אַךְ צַדִּיקִים יוֹדוּ לִשְׁמֶךָ יֵשְׁבוּ יְשָׁרִים אֶת פָּנֶיךָ
+                אַךְ צַדִּיקִים יוֹדוּ לִשְׁמֶךָ יֵשְׁבוּ יְשָׁרִים אֶת פָּנֶיךָ
               </p>
             </section>
           </div>
@@ -1177,8 +1269,8 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
 
         <div className="mt-12 text-center">
           <h3 className="text-2xl font-black text-secondary mb-4">היה שותף בהפצת המעיינות</h3>
-          <p className="text-gray-600 mb-8">התרומה שלך מאפשרת לנו להגיע לעוד יהודי, להניח לו תפילין ולהאיר את נשמתו</p>
-          <button onClick={() => { onBack(); setTimeout(() => document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="bg-primary text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:shadow-2xl transition-all inline-block">
+          <p className="text-gray-600 mb-8 font-bold">התרומה שלך מאפשרת לנו להגיע לעוד יהודי, להניח לו תפילין ולהאיר את נשמתו</p>
+          <button onClick={() => { onBack(); setTimeout(() => document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' }), 105); }} className="bg-primary text-white px-10 py-4 rounded-2xl font-black text-xl shadow-xl hover:shadow-2xl transition-all inline-block cursor-pointer">
             לתרומה מאובטחת
           </button>
         </div>
@@ -1193,10 +1285,12 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const [showIframe, setShowIframe] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'bit'>('credit_card');
 
   const handleDonate = (amount: number) => {
     setSelectedAmount(amount);
     setShowIframe(false);
+    setPaymentMethod('credit_card'); // Reset to credit card by default
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -1205,6 +1299,7 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     // Save to Google Sheets
     try {
       const option = REVOLUTION_OPTIONS.find(opt => opt.amount === selectedAmount);
+      const paymentPrefix = paymentMethod === 'bit' ? 'תרומה בביט - ' : '';
       const response = await fetch('/api/donors', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1212,7 +1307,7 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
           fullName,
           email,
           amount: selectedAmount,
-          source: `מהפכת האור - ${option?.title || 'כללי'}`
+          source: `${paymentPrefix}מהפכת האור - ${option?.title || 'כללי'}`
         }),
       });
       const data = await response.json();
@@ -1255,11 +1350,11 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : 'max-w-2xl'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
+        className={`relative bg-white w-full ${showIframe && paymentMethod === 'credit_card' ? 'max-w-3xl h-[85vh]' : 'max-w-2xl'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
           <h3 className="text-2xl font-black text-secondary">
-            {showIframe ? 'תשלום מאובטח' : 'אני שותף למהפכת האור!'}
+            {showIframe ? (paymentMethod === 'bit' ? 'מעבר ל-Bit' : 'תשלום מאובטח') : 'אני שותף למהפכת האור!'}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={24} />
@@ -1268,17 +1363,57 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
           {showIframe ? (
-            <iframe 
-              key={getMeshulamUrl()}
-              src={getMeshulamUrl()}
-              className="w-full h-full border-none min-h-[500px]"
-              title="Meshulam Payment"
-            />
+            paymentMethod === 'credit_card' ? (
+              <iframe 
+                key={getMeshulamUrl()}
+                src={getMeshulamUrl()}
+                className="w-full h-full border-none min-h-[500px]"
+                title="Meshulam Payment"
+              />
+            ) : (
+              <div className="p-4 sm:p-8 text-center flex flex-col items-center justify-center min-h-[400px]">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 animate-pulse">
+                  <Smartphone size={32} />
+                </div>
+                
+                <h4 className="text-xl font-black text-secondary mb-3">מעבר לתשלום באפליקציית Bit</h4>
+                <p className="text-gray-600 mb-6 max-w-sm mx-auto leading-relaxed text-sm">
+                  פרטי השותפות שלך נרשמו בהצלחה במערכת! 
+                  <br />
+                  כעת, כדי להשלים את התרומה בסך של
+                  <span className="font-black text-primary block text-3xl my-2">₪{selectedAmount?.toLocaleString()}</span>
+                  לחצו על הכפתור למטה כדי לעבור לתשלום מאובטח באפליקציית Bit.
+                </p>
+
+                <a 
+                  href={(import.meta as any).env.VITE_BIT_PAYMENT_URL || "https://www.bitpay.co.il/app/bitcom-info?i=94DB91F1-8DFB-42E5-9A30-2E527387E620&j=6648F0A0-62EF-45D0-9205-55B54183B3EB%26return_scheme%3Dhttps%253A%252F%252Fmeshulam.co.il%252F%2525D7%2525A1%2525D7%252599%2525D7%25259ם_%2525D7%2525AA%2525D7%2525A9%2525D7%25259C%2525D7%252595%2525D7%25259D_%2525D7%252591%2525D7%252599%2525D7%252598%253Fdata%253DSk1iWXlEaDl1WWdzV3hHTXhnTG1odXFZalZWNnFSeTBXNU5mOGhBbmZ5NU9JMER1Y3oxN2FSbnJVajdkWkExUE14aUErQzFPSGlhV2FJNW9Hc3BhNHkzcXVXcHlnVnMrc1VndVRMMTVXMUQ1Q3p1d1ExdTZ2dXA5MW5hbURGTFM2TkV0RnRzNStoZVhFYkc2SGUxNWRiZlJRR3hsMmdEUElnZXVaUThBZldERGlKTHFiQVpOT2NTZGFPSTlMMVJIUjRmVEYrZ1JBak5jUWtUdy9lZ1pzSkJid0VvSU45YWs5OGtENit1S2RnNnZpMGdLbjV0TlpTNjZ6SkJ4a21jNw%253D%253D"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full max-w-xs bg-[#00b0f0] hover:bg-[#009cd6] text-white py-3.5 px-6 rounded-2xl font-black text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
+                >
+                  <span>מעבר ל-Bit להשלמת התרומה</span>
+                  <ExternalLink size={18} />
+                </a>
+
+                <button 
+                  onClick={() => setShowIframe(false)}
+                  className="mt-6 text-gray-500 hover:text-gray-800 text-sm font-bold underline transition-colors cursor-pointer"
+                >
+                  חזרה ושינוי פרטים / אופן תשלום
+                </button>
+                
+                <div className="mt-8 pt-4 border-t border-gray-100 w-full text-center">
+                  <p className="text-[10px] text-gray-400">
+                    לאחר סיום ההעברה ב-Bit, אנא וודאו שקיבלתם אישור באפליקציה.
+                  </p>
+                </div>
+              </div>
+            )
           ) : selectedAmount ? (
             <div className="max-w-md mx-auto py-2 sm:py-4">
               <button 
                 onClick={() => setSelectedAmount(null)}
-                className="flex items-center gap-2 text-primary font-bold mb-4 sm:6 hover:underline"
+                className="flex items-center gap-2 text-primary font-bold mb-4 sm:6 hover:underline cursor-pointer"
               >
                 <ArrowLeft size={16} className="rotate-180" />
                 חזרה לבחירת מסלול
@@ -1290,6 +1425,41 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
               </div>
 
               <form className="space-y-3 sm:space-y-4" onSubmit={handleSubmit}>
+                <div>
+                  <label className="block text-xs sm:text-sm font-bold text-gray-750 mb-1.5">אופן תשלום</label>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('credit_card')}
+                      className={`p-2.5 rounded-2xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        paymentMethod === 'credit_card'
+                          ? 'border-primary bg-primary/5 text-secondary shadow-sm font-extrabold'
+                          : 'border-gray-100 bg-white text-gray-450 hover:border-gray-200'
+                      }`}
+                    >
+                      <CreditCard size={18} className={paymentMethod === 'credit_card' ? 'text-primary' : 'text-gray-400'} />
+                      <span className="text-[11px]">כרטיס אשראי</span>
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('bit')}
+                      className={`p-2.5 rounded-2xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        paymentMethod === 'bit'
+                          ? 'border-primary bg-primary/5 text-secondary shadow-sm font-extrabold'
+                          : 'border-gray-100 bg-white text-gray-450 hover:border-gray-200'
+                      }`}
+                    >
+                      <span className={`w-7 h-7 rounded-full flex items-center justify-center font-black text-[9px] transition-colors ${
+                        paymentMethod === 'bit' ? 'bg-[#00b0f0] text-white' : 'bg-gray-200 text-gray-400'
+                      }`}>
+                        bit
+                      </span>
+                      <span className="text-[11px]">אפליקציית Bit</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">שם מלא</label>
                   <input 
@@ -1311,8 +1481,8 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   />
                 </div>
                 <div className="pt-2 sm:pt-4">
-                  <button type="submit" className="w-full bg-primary text-white py-3 sm:py-4 rounded-2xl font-black text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all">
-                    המשך לתשלום מאובטח
+                  <button type="submit" className="w-full bg-primary text-white py-3 sm:py-4 rounded-2xl font-black text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all cursor-pointer">
+                    {paymentMethod === 'bit' ? 'המשך לתרומה ב-Bit' : 'המשך לתשלום מאובטח'}
                   </button>
                 </div>
               </form>
