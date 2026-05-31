@@ -798,11 +798,11 @@ const DonationGrid = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative bg-white w-full ${showIframe && paymentMethod === 'credit_card' ? 'max-w-3xl h-[85vh]' : 'max-w-md'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
+              className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : 'max-w-md'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                 <h3 className="text-2xl font-black text-secondary">
-                  {showIframe ? (paymentMethod === 'bit' ? 'מעבר ל-Bit' : 'תשלום מאובטח') : 'פרטי תרומה'}
+                  {showIframe ? 'תשלום מאובטח' : 'פרטי תרומה'}
                 </h3>
                 <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
                   <X size={24} />
@@ -811,52 +811,12 @@ const DonationGrid = () => {
 
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {showIframe ? (
-                  paymentMethod === 'credit_card' ? (
-                    <iframe 
-                      key={getMeshulamUrl()}
-                      src={getMeshulamUrl()}
-                      className="w-full h-full border-none min-h-[500px]"
-                      title="Meshulam Payment"
-                    />
-                  ) : (
-                    <div className="p-8 text-center flex flex-col items-center justify-center min-h-[450px]">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 animate-pulse">
-                        <Smartphone size={32} />
-                      </div>
-                      
-                      <h4 className="text-xl font-black text-secondary mb-3">מעבר לתשלום באפליקציית Bit</h4>
-                      <p className="text-gray-600 mb-6 max-w-sm mx-auto leading-relaxed text-sm">
-                        פרטי התרומה נרשמו בהצלחה במערכת! 
-                        <br />
-                        כעת, כדי להשלים את התרומה בסך של
-                        <span className="font-black text-primary block text-3xl my-2">₪{selectedAmount?.toLocaleString()}</span>
-                        לחצו על הכפתור למטה כדי לעבור לתשלום מאובטח באפליקציית Bit.
-                      </p>
-
-                      <a 
-                        href={(import.meta as any).env.VITE_BIT_PAYMENT_URL || "https://www.bitpay.co.il/app/bitcom-info?i=94DB91F1-8DFB-42E5-9A30-2E527387E620&j=6648F0A0-62EF-45D0-9205-55B54183B3EB%26return_scheme%3Dhttps%253A%252F%252Fmeshulam.co.il%252F%2525D7%2525A1%2525D7%252599%2525D7%25259ם_%2525D7%2525AA%2525D7%2525A9%2525D7%25259C%2525D7%252595%2525D7%25259D_%2525D7%252591%2525D7%252599%2525D7%252598%253Fdata%253DSk1iWXlEaDl1WWdzV3hHTXhnTG1odXFZalZWNnFSeTBXNU5mOGhBbmZ5NU9JMER1Y3oxN2FSbnJVajdkWkExUE14aUErQzFPSGlhV2FJNW9Hc3BhNHkzcXVXcHlnVnMrc1VndVRMMTVXMUQ1Q3p1d1ExdTZ2dXA5MW5hbURGTFM2TkV0RnRzNStoZVhFYkc2SGUxNWRiZlJRR3hsMmdEUElnZXVaUThBZldERGlKTHFiQVpOT2NTZGFPSTlMMVJIUjRmVEYrZ1JBak5jUWtUdy9lZ1pzSkJid0VvSU45YWs5OGtENit1S2RnNnZpMGdLbjV0TlpTNjZ6SkJ4a21jNw%253D%253D"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full max-w-xs bg-[#00b0f0] hover:bg-[#009cd6] text-white py-3.5 px-6 rounded-2xl font-black text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
-                      >
-                        <span>מעבר ל-Bit להשלמת התרומה</span>
-                        <ExternalLink size={18} />
-                      </a>
-
-                      <button 
-                        onClick={() => setShowIframe(false)}
-                        className="mt-6 text-gray-500 hover:text-gray-800 text-sm font-bold underline transition-colors cursor-pointer"
-                      >
-                        חזרה ושינוי פרטים / אופן תשלום
-                      </button>
-                      
-                      <div className="mt-8 pt-4 border-t border-gray-100 w-full text-center">
-                        <p className="text-[10px] text-gray-400">
-                          לאחר סיום ההעברה ב-Bit, אנא וודאו שקיבלתם אישור באפליקציה.
-                        </p>
-                      </div>
-                    </div>
-                  )
+                  <iframe 
+                    key={getMeshulamUrl()}
+                    src={getMeshulamUrl()}
+                    className="w-full h-full border-none min-h-[500px]"
+                    title="Meshulam Payment"
+                  />
                 ) : (
                   <div className="p-8">
                     <div className="bg-primary/10 p-4 rounded-2xl mb-6 text-center">
@@ -1028,6 +988,28 @@ const ImpactSection = () => {
 };
 
 const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'איגוד תלמידי הישיבות קרית גת',
+        text: 'שותפות במפעל האור והנחת התפילין בקרית גת',
+        url: window.location.href
+      }).catch(err => {
+        console.log('Error sharing:', err);
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleMail = () => {
+    window.location.href = "mailto:mivtzoim.kg@gmail.com?subject=שותפות באור - איגוד תלמידי הישיבות&body=שלום רב,\nאשמח לקבל מידע נוסף...";
+  };
+
   return (
     <footer className="bg-secondary text-white pt-20 pb-10" dir="rtl">
       <div className="max-w-7xl mx-auto px-4">
@@ -1043,18 +1025,36 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
               איגוד תלמידי הישיבות - ישיבת תומכי תמימים ליובאוויטש קרית גת. 
               פועלים להפצת המעיינות והכנת העולם לקבלת פני משיח צדקנו.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
+              <div className="relative">
+                <motion.button 
+                  onClick={handleShare}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors cursor-pointer"
+                  title="שתף קישור"
+                >
+                  <Share2 size={18} />
+                </motion.button>
+                <AnimatePresence>
+                  {copied && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                      animate={{ opacity: 1, y: -40, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                      className="absolute left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold py-1 px-3 rounded-lg shadow-lg whitespace-nowrap"
+                    >
+                      הקישור הועתק!
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <motion.button 
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
-              >
-                <Share2 size={18} />
-              </motion.button>
-              <motion.button 
+                onClick={handleMail}
                 whileHover={{ scale: 1.1, rotate: -5 }}
                 whileTap={{ scale: 0.9 }}
-                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors"
+                className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-primary transition-colors cursor-pointer"
+                title="שלח מייל"
               >
                 <Mail size={18} />
               </motion.button>
@@ -1350,11 +1350,11 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className={`relative bg-white w-full ${showIframe && paymentMethod === 'credit_card' ? 'max-w-3xl h-[85vh]' : 'max-w-2xl'} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
+        className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : (selectedAmount ? 'max-w-md' : 'max-w-2xl')} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
           <h3 className="text-2xl font-black text-secondary">
-            {showIframe ? (paymentMethod === 'bit' ? 'מעבר ל-Bit' : 'תשלום מאובטח') : 'אני שותף למהפכת האור!'}
+            {showIframe ? 'תשלום מאובטח' : 'אני שותף למהפכת האור!'}
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={24} />
@@ -1363,52 +1363,12 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6">
           {showIframe ? (
-            paymentMethod === 'credit_card' ? (
-              <iframe 
-                key={getMeshulamUrl()}
-                src={getMeshulamUrl()}
-                className="w-full h-full border-none min-h-[500px]"
-                title="Meshulam Payment"
-              />
-            ) : (
-              <div className="p-4 sm:p-8 text-center flex flex-col items-center justify-center min-h-[400px]">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 animate-pulse">
-                  <Smartphone size={32} />
-                </div>
-                
-                <h4 className="text-xl font-black text-secondary mb-3">מעבר לתשלום באפליקציית Bit</h4>
-                <p className="text-gray-600 mb-6 max-w-sm mx-auto leading-relaxed text-sm">
-                  פרטי השותפות שלך נרשמו בהצלחה במערכת! 
-                  <br />
-                  כעת, כדי להשלים את התרומה בסך של
-                  <span className="font-black text-primary block text-3xl my-2">₪{selectedAmount?.toLocaleString()}</span>
-                  לחצו על הכפתור למטה כדי לעבור לתשלום מאובטח באפליקציית Bit.
-                </p>
-
-                <a 
-                  href={(import.meta as any).env.VITE_BIT_PAYMENT_URL || "https://www.bitpay.co.il/app/bitcom-info?i=94DB91F1-8DFB-42E5-9A30-2E527387E620&j=6648F0A0-62EF-45D0-9205-55B54183B3EB%26return_scheme%3Dhttps%253A%252F%252Fmeshulam.co.il%252F%2525D7%2525A1%2525D7%252599%2525D7%25259ם_%2525D7%2525AA%2525D7%2525A9%2525D7%25259C%2525D7%252595%2525D7%25259D_%2525D7%252591%2525D7%252599%2525D7%252598%253Fdata%253DSk1iWXlEaDl1WWdzV3hHTXhnTG1odXFZalZWNnFSeTBXNU5mOGhBbmZ5NU9JMER1Y3oxN2FSbnJVajdkWkExUE14aUErQzFPSGlhV2FJNW9Hc3BhNHkzcXVXcHlnVnMrc1VndVRMMTVXMUQ1Q3p1d1ExdTZ2dXA5MW5hbURGTFM2TkV0RnRzNStoZVhFYkc2SGUxNWRiZlJRR3hsMmdEUElnZXVaUThBZldERGlKTHFiQVpOT2NTZGFPSTlMMVJIUjRmVEYrZ1JBak5jUWtUdy9lZ1pzSkJid0VvSU45YWs5OGtENit1S2RnNnZpMGdLbjV0TlpTNjZ6SkJ4a21jNw%253D%253D"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full max-w-xs bg-[#00b0f0] hover:bg-[#009cd6] text-white py-3.5 px-6 rounded-2xl font-black text-base shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-center"
-                >
-                  <span>מעבר ל-Bit להשלמת התרומה</span>
-                  <ExternalLink size={18} />
-                </a>
-
-                <button 
-                  onClick={() => setShowIframe(false)}
-                  className="mt-6 text-gray-500 hover:text-gray-800 text-sm font-bold underline transition-colors cursor-pointer"
-                >
-                  חזרה ושינוי פרטים / אופן תשלום
-                </button>
-                
-                <div className="mt-8 pt-4 border-t border-gray-100 w-full text-center">
-                  <p className="text-[10px] text-gray-400">
-                    לאחר סיום ההעברה ב-Bit, אנא וודאו שקיבלתם אישור באפליקציה.
-                  </p>
-                </div>
-              </div>
-            )
+            <iframe 
+              key={getMeshulamUrl()}
+              src={getMeshulamUrl()}
+              className="w-full h-full border-none min-h-[500px]"
+              title="Meshulam Payment"
+            />
           ) : selectedAmount ? (
             <div className="max-w-md mx-auto py-2 sm:py-4">
               <button 
