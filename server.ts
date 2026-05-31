@@ -15,14 +15,56 @@ async function startServer() {
   // API routes
   app.get("/api/test-sheets", async (req, res) => {
     const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
-    if (scriptUrl) {
-      return res.json({ 
-        status: "success", 
-        mode: "apps-script", 
-        message: "Google Apps Script URL is configured" 
+    if (!scriptUrl) {
+      return res.status(400).json({ status: "error", message: "GOOGLE_SCRIPT_URL is not configured" });
+    }
+
+    try {
+      console.log(`[Diagnostic] Testing Google Script connection to: ${scriptUrl}`);
+      const testPayload = {
+        date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+        fullName: "בדיקת מערכת תקינות",
+        email: "test@example.com",
+        amount: 1,
+        source: "חיבור בדיקה - אבחון עצמי"
+      };
+
+      const response = await axios.post(scriptUrl, testPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        maxRedirects: 5,
+        timeout: 8000
+      });
+
+      return res.json({
+        status: "success",
+        message: "השרת הצליח לשלוח קריאה ולקבל תשובה מגוגל!",
+        googleResponse: response.data,
+        info: "שרת האפליקציה הצליח ליצור קשר עם גוגל בהצלחה. אם המידע לא מופיע כראוי בגליון, בדקו את קוד ה-doPost בסקריפט שלכם."
+      });
+    } catch (err: any) {
+      console.error("[Diagnostic] Test Sheets connection failed:", err.message);
+      
+      let details = err.message;
+      let suggestion = "ודאו שכתובת ה-Web App הועתקה במלואה והסקריפט מוגדר כציבורי.";
+      
+      if (err.response) {
+        details = `גוגל החזיר תשובה עם קוד: ${err.response.status}`;
+        if (err.response.status === 403) {
+          suggestion = "שגיאת הרשאות (403). עליך להגדיר את ה-Deploy ב-Apps Script כבעל גישה ל-Anyone (כולל גישה ללא צורך בחשבון גוגל). ללא הגדרה זו, שרת האפליקציה שלכם נחסם על ידי גוגל.";
+        } else if (err.response.status === 404) {
+          suggestion = "שגיאת כתובת (404). כנראה כתובת ה-Web App שהועתקה אינה נכונה או ישנה מדי, ואינה קיימת עוד.";
+        }
+      }
+
+      return res.status(500).json({
+        status: "error",
+        message: "חיבור לגוגל נכשל",
+        details,
+        suggestion
       });
     }
-    res.status(400).json({ status: "error", message: "GOOGLE_SCRIPT_URL is not configured" });
   });
 
   // SMS notification helper function
