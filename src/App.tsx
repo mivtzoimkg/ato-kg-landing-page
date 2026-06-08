@@ -107,6 +107,64 @@ const REVOLUTION_OPTIONS = [
 const GOAL = 500000;
 const INITIAL_RAISED = 342500;
 
+const saveDonorInfo = async (fullName: string, email: string, amount: number, source: string) => {
+  const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+  const payload = {
+    date: dateStr,
+    fullName: fullName.trim(),
+    email: email || "N/A",
+    amount,
+    source,
+    "תאריך ושעה": dateStr,
+    "שם": fullName.trim(),
+    "מייל": email || "N/A",
+    "סכום": amount,
+    "סוג": source
+  };
+
+  const scriptUrl = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+
+  try {
+    console.log('[saveDonorInfo] Attempting to send donor info to backend server /api/donors...');
+    const response = await fetch('/api/donors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fullName, email, amount, source }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('[saveDonorInfo] Backend response:', data);
+      return data;
+    } else {
+      throw new Error(`Backend responded with status ${response.status}`);
+    }
+  } catch (error) {
+    console.warn('[saveDonorInfo] Backend call failed, using client-side direct fallback to Google Sheets:', error);
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+      });
+      console.log('[saveDonorInfo] Client-side direct call to Google App Script completed successfully.');
+    } catch (directError) {
+      console.error('[saveDonorInfo] Direct CORS call failed, trying with no-cors mode...', directError);
+      try {
+        await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        });
+        console.log('[saveDonorInfo] Client-side direct no-cors call completed.');
+      } catch (noCorsError) {
+        console.error('[saveDonorInfo] Hard failure on both backend and client fallback:', noCorsError);
+      }
+    }
+  }
+};
+
 // --- Components ---
 
 const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
@@ -614,23 +672,13 @@ const DonationGrid = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Save to Google Sheets
-    try {
-      const response = await fetch('/api/donors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName,
-          email,
-          amount: selectedAmount,
-          source: paymentMethod === 'bit' ? 'תרומה בביט - תרומה רגילה' : 'תרומה רגילה'
-        }),
-      });
-      const data = await response.json();
-      console.log('Google Sheets response:', data);
-    } catch (error) {
-      console.error('Failed to save donor info:', error);
-    }
+    // Save to Google Sheets (tries server first, falls back to direct client call)
+    await saveDonorInfo(
+      fullName,
+      email,
+      selectedAmount || 0,
+      paymentMethod === 'bit' ? 'תרומה בביט - תרומה רגילה' : 'תרומה רגילה'
+    );
 
     setShowIframe(true);
   };
@@ -1336,25 +1384,15 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Save to Google Sheets
-    try {
-      const option = REVOLUTION_OPTIONS.find(opt => opt.amount === selectedAmount);
-      const paymentPrefix = paymentMethod === 'bit' ? 'תרומה בביט - ' : '';
-      const response = await fetch('/api/donors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName,
-          email,
-          amount: selectedAmount,
-          source: `${paymentPrefix}מהפכת האור - ${option?.title || 'כללי'}`
-        }),
-      });
-      const data = await response.json();
-      console.log('Google Sheets response:', data);
-    } catch (error) {
-      console.error('Failed to save donor info:', error);
-    }
+    // Save to Google Sheets (tries server first, falls back to direct client call)
+    const option = REVOLUTION_OPTIONS.find(opt => opt.amount === selectedAmount);
+    const paymentPrefix = paymentMethod === 'bit' ? 'תרומה בביט - ' : '';
+    await saveDonorInfo(
+      fullName,
+      email,
+      selectedAmount || 0,
+      `${paymentPrefix}מהפכת האור - ${option?.title || 'כללי'}`
+    );
 
     setShowIframe(true);
   };
