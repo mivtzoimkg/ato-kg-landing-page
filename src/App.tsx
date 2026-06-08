@@ -303,7 +303,7 @@ const Hero = ({ onPrayersClick }: { onPrayersClick: () => void }) => {
             className="flex flex-wrap gap-3 justify-start"
           >
             <motion.a 
-              href="#revolution" 
+              href="#shutafim" 
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
               className="bg-primary text-white px-8 py-5 rounded-2xl font-black text-lg sm:text-xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-3"
@@ -661,12 +661,11 @@ const DonationGrid = () => {
   const [showIframe, setShowIframe] = useState(false);
   const [expandedOption, setExpandedOption] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'bit'>('credit_card');
-  const [wantsNewsletter, setWantsNewsletter] = useState(true);
 
-  // Synchronize modal state with '#donate' URL hash for smooth routing
+  // Synchronize modal state with '#Donate' URL hash for smooth routing
   useEffect(() => {
     const handleHash = () => {
-      if (window.location.hash === '#donate') {
+      if (window.location.hash === '#Donate') {
         setIsModalOpen(true);
       } else {
         setIsModalOpen(false);
@@ -681,13 +680,12 @@ const DonationGrid = () => {
     setSelectedAmount(amount);
     setShowIframe(false);
     setPaymentMethod('credit_card'); // Reset to credit card by default
-    setWantsNewsletter(true); // Reset to true
-    window.location.hash = '#donate'; // Update hash to trigger opening
+    window.location.hash = '#Donate'; // Update hash to trigger opening
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    if (window.location.hash === '#donate') {
+    if (window.location.hash === '#Donate') {
       window.location.hash = '#';
     }
   };
@@ -696,8 +694,7 @@ const DonationGrid = () => {
     e.preventDefault();
     
     // Save to Google Sheets in the background (tries server first, falls back to direct client call)
-    const baseSource = paymentMethod === 'bit' ? 'תרומה בביט - תרומה רגילה' : 'תרומה רגילה';
-    const finalSource = wantsNewsletter ? `${baseSource} (מעוניין בניוזלטר)` : `${baseSource} (ללא ניוזלטר)`;
+    const finalSource = paymentMethod === 'bit' ? 'תרומה בביט - תרומה רגילה' : 'תרומה רגילה';
     
     saveDonorInfo(
       fullName,
@@ -993,19 +990,6 @@ const DonationGrid = () => {
                           onChange={(e) => setEmail(e.target.value)}
                           className="w-full px-4 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary outline-none" 
                         />
-                      </div>
-
-                      <div className="flex items-start gap-2.5 pt-1 select-none">
-                        <input 
-                          type="checkbox" 
-                          id="newsletter-option"
-                          checked={wantsNewsletter}
-                          onChange={(e) => setWantsNewsletter(e.target.checked)}
-                          className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-pointer shrink-0" 
-                        />
-                        <label htmlFor="newsletter-option" className="text-xs text-gray-600 leading-normal cursor-pointer font-bold select-none text-right">
-                          אשמח לקבל ניוזלטר ועדכוני התקדמות מהפעילות של איגוד תלמידי הישיבות
-                        </label>
                       </div>
 
                       <div className="pt-3">
@@ -1415,13 +1399,11 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'bit'>('credit_card');
-  const [wantsNewsletter, setWantsNewsletter] = useState(true);
 
   const handleDonate = (amount: number) => {
     setSelectedAmount(amount);
     setShowIframe(false);
     setPaymentMethod('credit_card'); // Reset to credit card by default
-    setWantsNewsletter(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -1430,8 +1412,7 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
     // Save to Google Sheets in the background (tries server first, falls back to direct client call)
     const option = REVOLUTION_OPTIONS.find(opt => opt.amount === selectedAmount);
     const paymentPrefix = paymentMethod === 'bit' ? 'תרומה בביט - ' : '';
-    const baseSource = `${paymentPrefix}מהפכת האור - ${option?.title || 'כללי'}`;
-    const finalSource = wantsNewsletter ? `${baseSource} (מעוניין בניוזלטר)` : `${baseSource} (ללא ניוזלטר)`;
+    const finalSource = `${paymentPrefix}מהפכת האור - ${option?.title || 'כללי'}`;
 
     saveDonorInfo(
       fullName,
@@ -1566,19 +1547,6 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
                   />
                 </div>
 
-                <div className="flex items-start gap-2.5 pt-1 select-none">
-                  <input 
-                    type="checkbox" 
-                    id="rev-newsletter-option"
-                    checked={wantsNewsletter}
-                    onChange={(e) => setWantsNewsletter(e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary accent-primary cursor-pointer shrink-0" 
-                  />
-                  <label htmlFor="rev-newsletter-option" className="text-xs text-gray-600 leading-normal cursor-pointer font-bold select-none text-right">
-                    אשמח לקבל ניוזלטר ועדכוני התקדמות מהפעילות של איגוד תלמידי הישיבות
-                  </label>
-                </div>
-
                 <div className="pt-3">
                   <button type="submit" className="w-full bg-primary text-white py-3 sm:py-4 rounded-2xl font-black text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all cursor-pointer">
                     {paymentMethod === 'bit' ? 'המשך לתרומה ב-Bit' : 'המשך לתשלום מאובטח'}
@@ -1634,10 +1602,10 @@ export default function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#prayers') {
+      if (hash === '#tefilah' || hash === '#prayers') {
         setViewInternal('prayers');
         setIsRevolutionModalOpenInternal(false);
-      } else if (hash === '#revolution' || hash === '#partner') {
+      } else if (hash === '#shutafim' || hash === '#revolution' || hash === '#partner') {
         setViewInternal('home');
         setIsRevolutionModalOpenInternal(true);
       } else {
@@ -1658,7 +1626,7 @@ export default function App() {
   // Set URL hash when navigating, which triggers handleHashChange smoothly
   const setView = (newView: 'home' | 'prayers') => {
     if (newView === 'prayers') {
-      window.location.hash = '#prayers';
+      window.location.hash = '#tefilah';
     } else {
       window.location.hash = '#';
     }
@@ -1666,9 +1634,13 @@ export default function App() {
 
   const setIsRevolutionModalOpen = (isOpen: boolean) => {
     if (isOpen) {
-      window.location.hash = '#revolution';
+      window.location.hash = '#shutafim';
     } else {
-      if (window.location.hash === '#revolution' || window.location.hash === '#partner') {
+      if (
+        window.location.hash === '#shutafim' || 
+        window.location.hash === '#revolution' || 
+        window.location.hash === '#partner'
+      ) {
         window.location.hash = '#';
       } else {
         setIsRevolutionModalOpenInternal(false);
