@@ -12,6 +12,73 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Helper to execute Google Apps Script requests with robust 302/JSON redirection handling
+  async function executeGoogleScriptCall(url: string, payload: any) {
+    try {
+      console.log(`[GoogleScript] Attempting native fetch post to: ${url}`);
+      const resp = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload),
+        redirect: "follow"
+      });
+      
+      const text = await resp.text();
+      console.log(`[GoogleScript] Response status: ${resp.status}, content length: ${text.length}`);
+      
+      // Check if the response is actually a Google Sign-In redirect page, which happens on permission mismatch
+      if (text.includes("Sign in") || text.includes("Google Accounts") || text.includes("login")) {
+        throw new Error("גוגל דורש התחברות (שגיאה 401/403). עליכם להגדיר את ה-doPost ב-Apps Script כבעל גישה ל-Anyone (כולל משתמשים אנונימיים). בלי זה, שרת גוגל חוסם קריאות חיצוניות.");
+      }
+      
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed.status === "error" || parsed.error) {
+          throw new Error(parsed.message || parsed.error || "שגיאה פנימית בסקריפט גוגל");
+        }
+        return parsed;
+      } catch (jsonErr: any) {
+        if (jsonErr.message && jsonErr.message.includes("גוגל דורש התחברות")) {
+          throw jsonErr;
+        }
+        // If the return was short, raw text, let's assume it was successful
+        if (text && text.trim().length > 0 && text.trim().length < 200) {
+          return { status: "success", text };
+        }
+        throw new Error(`תשובת הגוגל שיטס אינה בפורמט JSON תקין. ייתכן שהסקריפט לא הותקן כראוי. תוכן שהתקבל: ${text.substring(0, 150)}...`);
+      }
+    } catch (err: any) {
+      console.warn(`[GoogleScript] Native fetch failed: ${err.message}. Trying Axios with standard redirects.`);
+      try {
+        const response = await axios.post(url, payload, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          maxRedirects: 5,
+          timeout: 10000 // 10s timeout
+        });
+        
+        const data = response.data;
+        if (typeof data === "string") {
+          if (data.includes("Sign in") || data.includes("Google Accounts") || data.includes("login")) {
+            throw new Error("גוגל דורש התחברות (שגיאה 401/403). עליכם להגדיר את ה-doPost ב-Apps Script כבעל גישה ל-Anyone (כולל משתמשים אנונימיים). בלי זה, שרת גוגל חוסם קריאות חיצוניות.");
+          }
+          try {
+            return JSON.parse(data);
+          } catch {
+            return { status: "raw", text: data.substring(0, 500) };
+          }
+        }
+        return data;
+      } catch (axiosErr: any) {
+        console.error("[GoogleScript] Axios fallback also failed:", axiosErr.message);
+        throw new Error(err.message || axiosErr.message);
+      }
+    }
+  }
+
   // API routes
   app.get("/api/test-sheets", async (req, res) => {
     const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
@@ -29,40 +96,52 @@ async function startServer() {
         source: "חיבור בדיקה - אבחון עצמי"
       };
 
-      const response = await axios.post(scriptUrl, testPayload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        maxRedirects: 5,
-        timeout: 8000
-      });
-
+      const result = await executeGoogleScriptCall(scriptUrl, testPayload);
       return res.json({
         status: "success",
         message: "השרת הצליח לשלוח קריאה ולקבל תשובה מגוגל!",
-        googleResponse: response.data,
-        info: "שרת האפליקציה הצליח ליצור קשר עם גוגל בהצלחה. אם המידע לא מופיע כראוי בגליון, בדקו את קוד ה-doPost בסקריפט שלכם."
+        googleResponse: result,
+        info: "שרת האפליקציה הצליח ליצור קשר עם גוגל בהצלחה. אם המידע לא מופיע כראוי בגליון, ודאו שקוד ה-doPost בסקריפט שלכם נכון."
       });
     } catch (err: any) {
       console.error("[Diagnostic] Test Sheets connection failed:", err.message);
-      
-      let details = err.message;
-      let suggestion = "ודאו שכתובת ה-Web App הועתקה במלואה והסקריפט מוגדר כציבורי.";
-      
-      if (err.response) {
-        details = `גוגל החזיר תשובה עם קוד: ${err.response.status}`;
-        if (err.response.status === 403) {
-          suggestion = "שגיאת הרשאות (403). עליך להגדיר את ה-Deploy ב-Apps Script כבעל גישה ל-Anyone (כולל גישה ללא צורך בחשבון גוגל). ללא הגדרה זו, שרת האפליקציה שלכם נחסם על ידי גוגל.";
-        } else if (err.response.status === 404) {
-          suggestion = "שגיאת כתובת (404). כנראה כתובת ה-Web App שהועתקה אינה נכונה או ישנה מדי, ואינה קיימת עוד.";
-        }
-      }
-
       return res.status(500).json({
         status: "error",
         message: "חיבור לגוגל נכשל",
-        details,
-        suggestion
+        details: err.message,
+        suggestion: "ודאו שכתובת ה-Web App הועתקה במלואה, שהסקריפט פורסם (Deploy) ושהגדרתם גישה לכל אחד (Anyone, even anonymous)."
+      });
+    }
+  });
+
+  app.post("/api/test-sheets-url", async (req, res) => {
+    const { url } = req.body;
+    if (!url || typeof url !== "string" || !url.startsWith("https://script.google.com")) {
+      return res.status(400).json({ status: "error", message: "כתובת סקריפט לא תקינה" });
+    }
+
+    try {
+      console.log(`[Diagnostic Tool] Testing manually supplied Google Script URL: ${url}`);
+      const testPayload = {
+        date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+        fullName: "בדיקת חיבור ידנית",
+        email: "test-admin@example.com",
+        amount: 5,
+        source: "אבחון ידני מהאתר"
+      };
+
+      const result = await executeGoogleScriptCall(url, testPayload);
+      return res.json({
+        status: "success",
+        message: "התשובה התקבלה בהצלחה מגוגל!",
+        googleResponse: result
+      });
+    } catch (err: any) {
+      console.error("[Diagnostic Tool] Manual Test Sheets connection failed:", err.message);
+      return res.status(500).json({
+        status: "error",
+        message: "החיבור לכתובת זו נכשל",
+        details: err.message
       });
     }
   });
@@ -206,42 +285,53 @@ async function startServer() {
 
   app.post("/api/donors", async (req, res) => {
     const { fullName, email, amount, source } = req.body;
+
+    // Server-side robust validation
+    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
+      return res.status(400).json({ 
+        status: "error", 
+        message: "נא להזין שם מלא תקין." 
+      });
+    }
+
+    const numericAmount = Number(amount);
+    if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({ 
+        status: "error", 
+        message: "סכום התרומה חייב להיות מספר חיובי גדול מאפס." 
+      });
+    }
     
     // Default to the provided script URL if ENV is missing
     const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
     console.log(`[Spreadsheet] Using Script URL starting with: ${scriptUrl.substring(0, 35)}...`);
     
-    // Trigger SMS notification asynchronously so it doesn't slow down the main response to the user
-    sendAdminSMS(amount, fullName, source).catch(err => {
+    // Trigger SMS notification was paused for now at user request
+    /*
+    sendAdminSMS(numericAmount, fullName, source).catch(err => {
       console.error("[SMS] Background SMS send error:", err);
     });
+    */
 
     try {
-      console.log(`[Spreadsheet] Attempting to save donor: ${fullName} (${amount} NIS)`);
+      console.log(`[Spreadsheet] Attempting to save donor: ${fullName.trim()} (${numericAmount} NIS)`);
       
       const payload = {
         date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-        fullName,
+        fullName: fullName.trim(),
         email: email || "N/A",
-        amount,
+        amount: numericAmount,
         source: source || "תרומה רגילה"
       };
 
-      // Using axios because it handles Google's 302 redirects more robustly than native fetch in Node.js
-      const response = await axios.post(scriptUrl, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        maxRedirects: 5,
-        timeout: 10000 // 10s timeout
-      });
+      const result = await executeGoogleScriptCall(scriptUrl, payload);
       
-      console.log(`[Spreadsheet] Response from script:`, response.data);
+      console.log(`[Spreadsheet] Response from script:`, result);
       
       return res.json({ 
         status: "success", 
         method: "apps-script",
-        scriptResponse: response.data
+        scriptResponse: result
       });
 
     } catch (error: any) {
@@ -250,14 +340,6 @@ async function startServer() {
       let errorMessage = "Failed to save to Google Sheets via Script";
       let details = error.message;
 
-      if (error.response && error.response.status === 403) {
-        console.error("[Spreadsheet] Access Denied (403). Make sure the Apps Script is deployed as 'Anyone'.");
-        errorMessage = "שגיאת הרשאות בגוגל (403)";
-        details = "עליך להגדיר את ה-Apps Script שיהיה נגיש ל-Anyone (כולל משתמשים אנונימיים) בתפריט ה-Deploy.";
-      } else if (error.response) {
-        console.error("[Spreadsheet] Response data:", error.response.data);
-      }
-      
       res.status(500).json({ 
         status: "error", 
         message: errorMessage,
