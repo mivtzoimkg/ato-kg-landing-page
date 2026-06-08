@@ -102,6 +102,20 @@ const REVOLUTION_OPTIONS = [
     description: "שיחת השבוע",
     subDescription: "ועלוני חב\"ד השבועיים"
   },
+  { 
+    id: 'rev-4', 
+    amount: 50, 
+    title: "שותף צעיר", 
+    icon: Users,
+    description: "חבר את\"ה"
+  },
+  { 
+    id: 'rev-5', 
+    amount: 20, 
+    title: "שותף ידיד", 
+    icon: Heart,
+    description: "גם אני שותף במבצע תפילין"
+  },
 ];
 
 const GOAL = 500000;
@@ -1455,7 +1469,7 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
         initial={{ opacity: 0, scale: 0.9, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : (selectedAmount ? 'max-w-md' : 'max-w-2xl')} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
+        className={`relative bg-white w-full ${showIframe ? 'max-w-3xl h-[85vh]' : (selectedAmount ? 'max-w-md' : 'max-w-5xl')} rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 flex flex-col`}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
           <h3 className="text-2xl font-black text-secondary">
@@ -1556,12 +1570,12 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
                 {REVOLUTION_OPTIONS.map((option) => (
                   <button
                     key={option.id}
                     onClick={() => handleDonate(option.amount)}
-                    className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-[32px] border-2 border-gray-100 hover:border-primary hover:shadow-xl transition-all group text-center flex flex-row sm:flex-col items-center gap-4 sm:gap-0"
+                    className="bg-white p-4 sm:p-5 rounded-2xl sm:rounded-[24px] border-2 border-gray-100 hover:border-primary hover:shadow-xl transition-all group text-center flex flex-row sm:flex-col items-center gap-4 sm:gap-0"
                   >
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-primary mb-0 sm:mb-4 group-hover:scale-110 transition-transform shrink-0">
                       <option.icon size={24} className="sm:hidden" />
