@@ -316,12 +316,21 @@ async function startServer() {
     try {
       console.log(`[Spreadsheet] Attempting to save donor: ${fullName.trim()} (${numericAmount} NIS)`);
       
+      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
       const payload = {
-        date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+        // English keys
+        date: dateStr,
         fullName: fullName.trim(),
         email: email || "N/A",
         amount: numericAmount,
-        source: source || "תרומה רגילה"
+        source: source || "תרומה רגילה",
+
+        // Hebrew keys requested by the user
+        "תאריך ושעה": dateStr,
+        "שם": fullName.trim(),
+        "מייל": email || "N/A",
+        "סכום": numericAmount,
+        "סוג": source || "תרומה רגילה"
       };
 
       const result = await executeGoogleScriptCall(scriptUrl, payload);
