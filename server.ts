@@ -344,8 +344,7 @@ async function startServer() {
     }
 
     const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS || 
-                      process.env.GOOGLE_SCRIPT_URL || 
-                      "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+                      "https://script.google.com/macros/s/AKfycbykeWqhAvXm4mswbJmqneXX47FzN5Ijw4iDsnc0zoTGmo8KhsIdokQ_ntrYlhbSLZEc/exec";
 
     try {
       console.log(`[Spreadsheet] Saving letter from: ${fullName.trim()} (Mother: ${motherName || 'N/A'})`);
