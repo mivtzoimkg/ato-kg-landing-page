@@ -181,7 +181,7 @@ const saveDonorInfo = async (fullName: string, email: string, amount: number, so
 
 // --- Components ---
 
-const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
+const Navbar = ({ onPrayersClick, onLetterClick }: { onPrayersClick?: () => void; onLetterClick?: () => void }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -204,13 +204,14 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
         </div>
 
         <div className="hidden md:flex items-center gap-8">
-          <button onClick={onPrayersClick} className="text-gray-700 hover:text-primary font-bold transition-colors">סדר הנחת תפילין</button>
+          <button onClick={onLetterClick} className="text-[#5F1427] hover:text-[#4E0F1F] font-extrabold pb-0.5 border-b-2 border-[#5F1427]/15 hover:border-[#5F1427] transition-all cursor-pointer">כתיבה לרבי</button>
+          <button onClick={onPrayersClick} className="text-gray-700 hover:text-primary font-bold transition-colors cursor-pointer">סדר הנחת תפילין</button>
           <a href="#impact" className="text-gray-700 hover:text-primary font-medium transition-colors">ההשפעה שלנו</a>
           <a href="#donate" className="bg-primary text-white px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all shadow-md hover:shadow-lg">תרום עכשיו</a>
         </div>
 
         <div className="flex items-center gap-3">
-          <a href="#donate" className="bg-primary text-white px-4 py-2 rounded-full font-bold text-sm shadow-md md:hidden">תרום</a>
+          <button onClick={onLetterClick} className="bg-[#5F1427] text-white px-4 py-2 rounded-full font-bold text-xs shadow-md md:hidden hover:bg-[#4E0F1F] cursor-pointer">כתיבה לרבי</button>
           <button className="md:hidden text-secondary" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -224,9 +225,10 @@ const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-100 p-4 flex flex-col gap-4"
+            className="md:hidden absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-100 p-4 flex flex-col gap-4 text-right"
           >
-            <button onClick={() => { onPrayersClick?.(); setIsMenuOpen(false); }} className="text-right text-lg font-bold text-gray-800 p-2">סדר הנחת תפילין</button>
+            <button onClick={() => { onLetterClick?.(); setIsMenuOpen(false); }} className="text-right text-lg font-bold text-[#5F1427] p-2 border-b border-gray-100">כתיבה לרבי</button>
+            <button onClick={() => { onPrayersClick?.(); setIsMenuOpen(false); }} className="text-right text-lg font-bold text-gray-800 p-2 border-b border-gray-100">סדר הנחת תפילין</button>
             <a href="#impact" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 p-2">ההשפעה שלנו</a>
             <a href="#donate" onClick={() => setIsMenuOpen(false)} className="bg-primary text-white text-center py-3 rounded-xl font-bold">תרום עכשיו</a>
           </motion.div>
@@ -1113,7 +1115,7 @@ const ImpactSection = () => {
   );
 };
 
-const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
+const Footer = ({ setView, onLetterClick }: { setView?: (v: 'home' | 'prayers') => void; onLetterClick?: () => void }) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
@@ -1218,6 +1220,20 @@ const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
               <h5 className="text-lg font-bold mb-6 text-primary">ניווט מהיר</h5>
               <ul className="space-y-4 text-gray-300">
                 <li><button onClick={() => { window.scrollTo(0, 0); setView?.('home'); }} className="hover:text-primary transition-colors cursor-pointer">דף הבית</button></li>
+                <li>
+                  <button 
+                    onClick={() => {
+                      if (onLetterClick) {
+                        onLetterClick();
+                      } else {
+                        window.location.hash = '#rebbe';
+                      }
+                    }}
+                    className="hover:text-amber-300 text-amber-200 font-bold transition-colors cursor-pointer text-right"
+                  >
+                    כתיבה לרבי מליובאוויטש
+                  </button>
+                </li>
                 <li><a href="#impact" className="hover:text-primary transition-colors">פעילות ודיווחים</a></li>
                 <li><a href="#donate" className="hover:text-primary transition-colors">תרומה מאובטחת</a></li>
                 <li><button onClick={() => { window.scrollTo(0, 0); setView?.('prayers'); }} className="hover:text-primary transition-colors cursor-pointer">סדר הנחת תפילין</button></li>
@@ -1402,7 +1418,253 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
           </button>
         </div>
       </main>
-      <Footer setView={onBack ? () => onBack() : undefined} />
+      <Footer setView={onBack ? () => onBack() : undefined} onLetterClick={() => { if (onBack) onBack(); setTimeout(() => { window.location.hash = '#rebbe'; }, 150); }} />
+    </div>
+  );
+};
+
+const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [fullName, setFullName] = useState('');
+  const [motherName, setMotherName] = useState('');
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fullName.trim() || !motherName.trim() || !content.trim()) {
+      setErrorMsg('נא למלא את כל השדות: שם, שם האם ותוכן הבקשה.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('/api/letters', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          fullName: fullName.trim(), 
+          motherName: motherName.trim(), 
+          content: content.trim()
+        }),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+      } else {
+        const errData = await response.json();
+        throw new Error(errData.message || 'שגיאה בשמירת המכתב בשרת');
+      }
+    } catch (err: any) {
+      console.warn('[LetterToRebbeModal] Backend letter api failed, executing fallback...', err);
+      // Fallback directly to Google Script with formatted source
+      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+      const fullCustomSource = `מכתב לרבי ליום ג' בתמוז | שם האם: ${motherName.trim()} | תוכן: ${content.trim()}`;
+      
+      try {
+        await saveDonorInfo(fullName, 'שולב בטקסט', 0, fullCustomSource);
+        setIsSubmitted(true);
+      } catch (fallbackErr: any) {
+        console.error('[LetterToRebbeModal] Fallback also failed:', fallbackErr);
+        setErrorMsg('שגיאה בשליחת המכתב. אנא נסה שנית או פנה אלינו.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReset = () => {
+    setFullName('');
+    setMotherName('');
+    setContent('');
+    setIsSubmitted(false);
+    setErrorMsg('');
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        className="relative bg-white w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col border border-gray-100"
+      >
+        {/* Top Banner exactly similar to the screenshot */}
+        <div className="relative h-28 bg-[#E89D52] w-full shrink-0 flex items-center justify-center">
+          {/* Close button inside the banner */}
+          <button 
+            onClick={onClose} 
+            className="absolute top-4 left-4 text-white hover:text-black/80 bg-white/20 hover:bg-white/30 p-2 rounded-full transition-all cursor-pointer border border-white/20 z-50"
+          >
+            <X size={18} />
+          </button>
+
+          {/* Centered Floating White Plate "ברכת הרבי" */}
+          <div className="absolute top-[35%] bg-white px-10 py-3 sm:py-4 rounded-2xl md:rounded-3xl shadow-xl border border-gray-100 min-w-[200px] text-center z-10 transition-transform">
+            <h3 className="text-xl sm:text-2xl font-black text-[#5F1427] tracking-wider leading-none">
+              ברכת הרבי
+            </h3>
+          </div>
+        </div>
+
+        {/* Modal body */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-10 md:p-10">
+          {isSubmitted ? (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-10 px-4"
+            >
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-emerald-150">
+                <CheckCircle2 size={32} />
+              </div>
+              <h4 className="text-2xl font-black text-[#5F1427] mb-3">המכתב נשלח בהצלחה!</h4>
+              <p className="text-gray-650 md:text-md leading-relaxed max-w-sm mx-auto font-medium">
+                מכתבך התקבל במערכת של איגוד תלמידי הישיבות.
+                נשגר ונניח את מכתבך על הציון הקדוש של הרבי מליובאוויטש זי"ע בניו יורק ביום ההילולא ג' בתמוז.
+              </p>
+              
+              {/* Charity Section "צדקה לברכה" */}
+              <div className="mt-8 bg-[#FCFBF8] border border-amber-900/15 rounded-[24px] p-6 sm:p-8 text-right max-w-xl mx-auto shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-amber-300 via-amber-600 to-amber-300 opacity-50" />
+                <h5 className="text-lg sm:text-xl font-bold text-[#5F1427] mb-3 flex items-center justify-end gap-1.5">
+                  <span>צדקה לברכה</span>
+                </h5>
+                <p className="text-sm sm:text-base text-gray-700 leading-relaxed font-normal mb-6">
+                  לתוספת ברכה נהוג לתרום לצדקה, במיוחד לטובת מפעל השליחות של הרבי. כאן תוכלו לתרום כל סכום שתחפצו ותזכו לשפע ברכה משמים.
+                </p>
+                <div className="flex flex-col sm:flex-row-reverse gap-3.5">
+                  <button
+                    onClick={() => {
+                      window.location.hash = '#shutafim';
+                    }}
+                    className="flex-1 bg-[#5F1427] hover:bg-[#4E0F1F] text-white py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base cursor-pointer transition-all shadow-md flex items-center justify-center gap-2"
+                  >
+                    <span>קביעת סכום לתרומה</span>
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 py-3.5 px-5 rounded-2xl font-black text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span>כתיבת מכתב נוסף</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+              
+              {/* Form Content Side */}
+              <div className="md:col-span-7 flex flex-col justify-between h-full">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Custom Description Text */}
+                  <div className="text-right text-sm text-gray-700 space-y-3.5 leading-relaxed font-normal mb-6">
+                    <p>
+                      כאן תוכלו לכתוב את שמכם ושמות יקיריכם לתפילה ובקשת ברכה על ציונו הקדוש של הרבי מליובאוויטש. הבקשות נשמרות בדיסקרטיות ונשלחות ישירות אל מקום קברו של הרבי.
+                    </p>
+                    <p>
+                      נסחו את בקשת הברכה שלכם בפתיחות ובשפה חופשית מהלב. קבלו החלטה לקיים מצווה או מעשה טוב, קראו פרק תהלים והוסיפו תפילה אישית לברכת שמיים. לתוספת ברכה נהוג גם לתרום לצדקה עבור מוסדותיו ומפעליו של הרבי.
+                    </p>
+                  </div>
+
+                  {/* Grid for Name and Mother's Name */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <input 
+                        type="text" 
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="שם מקבל/ת הברכה ושם משפחה"
+                        required
+                        className="w-full px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white focus:border-amber-500 focus:outline-none transition-all text-sm text-right leading-tight text-gray-800 font-medium placeholder-gray-400"
+                      />
+                    </div>
+                    <div>
+                      <input 
+                        type="text" 
+                        value={motherName}
+                        onChange={(e) => setMotherName(e.target.value)}
+                        placeholder="שם האם"
+                        required
+                        className="w-full px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white focus:border-amber-500 focus:outline-none transition-all text-sm text-right leading-tight text-gray-800 font-medium placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Input 2: Request content */}
+                  <div>
+                    <textarea 
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="תוכן בקשת הברכה"
+                      rows={6}
+                      required
+                      className="w-full px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white focus:border-amber-500 focus:outline-none transition-all text-sm text-right leading-normal text-gray-800 font-medium placeholder-gray-400 resize-none"
+                    />
+                  </div>
+
+
+
+                  {errorMsg && (
+                    <div className="text-xs text-red-600 font-bold bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2 text-right justify-end">
+                      <span>{errorMsg}</span>
+                      <span className="text-sm">⚠️</span>
+                    </div>
+                  )}
+
+                  {/* Deep Burgundy Submit Button */}
+                  <div className="pt-2">
+                    <button 
+                      type="submit" 
+                      disabled={isSubmitting}
+                      className="w-full bg-[#5F1427] hover:bg-[#4E0F1F] text-white py-3.5 rounded-xl font-black text-md shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <span className="animate-spin text-lg">⏳</span>
+                          שולח בקשה...
+                        </>
+                      ) : (
+                        <>
+                          לשלוח את הבקשה לציון הרבי
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Classic Portrait Column representing the photo exactly as in the mock */}
+              <div className="md:col-span-5 h-full flex items-center justify-center">
+                <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-gray-100 bg-gray-50 aspect-[4/5] sm:aspect-auto">
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Menachem_Mendel_Schneerson%2C_the_Lubavitcher_Rebbe_portrait.jpg" 
+                    alt='כתיבה לרבי מליובאוויטש זי"ע' 
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover object-top transition-transform hover:scale-[1.03] duration-500"
+                    style={{ maxHeight: '420px' }}
+                  />
+                  {/* Subtle elegant gradient overlay on the photo */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+                </div>
+              </div>
+
+            </div>
+          )}
+        </div>
+      </motion.div>
     </div>
   );
 };
@@ -1611,6 +1873,7 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 export default function App() {
   const [view, setViewInternal] = useState<'home' | 'prayers'>('home');
   const [isRevolutionModalOpen, setIsRevolutionModalOpenInternal] = useState(false);
+  const [isLetterModalOpen, setIsLetterModalOpenInternal] = useState(false);
 
   // Synchronize state with URL Hash for smooth history, back-button and deep-link support
   useEffect(() => {
@@ -1619,12 +1882,19 @@ export default function App() {
       if (hash === '#tefilah' || hash === '#prayers') {
         setViewInternal('prayers');
         setIsRevolutionModalOpenInternal(false);
+        setIsLetterModalOpenInternal(false);
       } else if (hash === '#shutafim' || hash === '#revolution' || hash === '#partner') {
         setViewInternal('home');
         setIsRevolutionModalOpenInternal(true);
+        setIsLetterModalOpenInternal(false);
+      } else if (hash === '#letter' || hash === '#michtav' || hash === '#rebbe') {
+        setViewInternal('home');
+        setIsRevolutionModalOpenInternal(false);
+        setIsLetterModalOpenInternal(true);
       } else {
         setViewInternal('home');
         setIsRevolutionModalOpenInternal(false);
+        setIsLetterModalOpenInternal(false);
       }
     };
 
@@ -1662,6 +1932,22 @@ export default function App() {
     }
   };
 
+  const setIsLetterModalOpen = (isOpen: boolean) => {
+    if (isOpen) {
+      window.location.hash = '#rebbe';
+    } else {
+      if (
+        window.location.hash === '#letter' || 
+        window.location.hash === '#michtav' || 
+        window.location.hash === '#rebbe'
+      ) {
+        window.location.hash = '#';
+      } else {
+        setIsLetterModalOpenInternal(false);
+      }
+    }
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [view]);
@@ -1672,7 +1958,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen font-sans" dir="rtl">
-      <Navbar onPrayersClick={() => setView('prayers')} />
+      <Navbar onPrayersClick={() => setView('prayers')} onLetterClick={() => setIsLetterModalOpen(true)} />
       <main>
         <Hero onPrayersClick={() => setView('prayers')} />
         <HanukkahHero />
@@ -1742,6 +2028,37 @@ export default function App() {
           </div>
         </section>
 
+        {/* Floating Rebbe Letter Button */}
+        <div className="fixed right-0 top-[35%] -translate-y-1/2 z-40 hidden md:flex flex-col items-center select-none">
+          <motion.button
+            onClick={() => setIsLetterModalOpen(true)}
+            whileHover={{ scale: 1.05, x: -4 }}
+            className="bg-[#5F1427] hover:bg-[#4E0F1F] text-white font-bold py-6 px-4 rounded-l-2xl shadow-xl flex flex-col items-center gap-3 border-y border-l border-amber-400/30 cursor-pointer text-center relative transition-all"
+            style={{ writingMode: 'vertical-rl' }}
+          >
+            <div className="bg-white/10 p-1.5 rounded-full text-amber-200">
+              <Mail size={16} />
+            </div>
+            <span className="tracking-widest text-xs sm:text-sm font-black mt-1 text-amber-100">
+              כתיבה לרבי - ג' בתמוז
+            </span>
+          </motion.button>
+        </div>
+
+        {/* Mobile Floating Button */}
+        <div className="fixed bottom-6 right-6 z-40 md:hidden flex items-center justify-center">
+          <motion.button
+            onClick={() => setIsLetterModalOpen(true)}
+            whileTap={{ scale: 0.95 }}
+            className="bg-[#5F1427] hover:bg-[#4E0F1F] text-white font-bold px-4 py-3.5 rounded-full shadow-lg flex items-center justify-center gap-2 border border-amber-400/20 cursor-pointer transition-all"
+          >
+            <div className="text-amber-200">
+              <Mail size={16} />
+            </div>
+            <span className="text-sm font-black tracking-wide">כתיבה לרבי לג' בתמוז</span>
+          </motion.button>
+        </div>
+
         <AnimatePresence>
           {isRevolutionModalOpen && (
             <RevolutionModal 
@@ -1749,9 +2066,15 @@ export default function App() {
               onClose={() => setIsRevolutionModalOpen(false)} 
             />
           )}
+          {isLetterModalOpen && (
+            <LetterToRebbeModal 
+              isOpen={isLetterModalOpen} 
+              onClose={() => setIsLetterModalOpen(false)} 
+            />
+          )}
         </AnimatePresence>
       </main>
-      <Footer setView={setView} />
+      <Footer setView={setView} onLetterClick={() => setIsLetterModalOpen(true)} />
     </div>
   );
 }

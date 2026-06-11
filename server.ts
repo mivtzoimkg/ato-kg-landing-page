@@ -357,6 +357,63 @@ async function startServer() {
     }
   });
 
+  app.post("/api/letters", async (req, res) => {
+    const { fullName, motherName, content, email, phone } = req.body;
+
+    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
+      return res.status(400).json({ 
+        status: "error", 
+        message: "נא להזין שם מלא." 
+      });
+    }
+
+    if (!content || typeof content !== "string" || !content.trim()) {
+      return res.status(400).json({ 
+        status: "error", 
+        message: "נא לכתוב את תוכן המכתב או הבקשה לברכה." 
+      });
+    }
+
+    const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS || process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+
+    try {
+      console.log(`[Spreadsheet] Saving letter from: ${fullName.trim()} (Mother: ${motherName || 'N/A'})`);
+      
+      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+      
+      const payload = {
+        // Standard keys in English as fallbacks
+        date: dateStr,
+        fullName: fullName.trim(),
+        motherName: motherName || "לא צוין",
+        content: content.trim(),
+        source: "מכתב לג' בתמוז",
+
+        // Plain Hebrew keys mapping to Sheets columns
+        "זמן ושעה": dateStr,
+        "שם": fullName.trim(),
+        "שם האם": motherName || "לא צוין",
+        "בקשות": content.trim()
+      };
+
+      const result = await executeGoogleScriptCall(scriptUrl, payload);
+      
+      return res.json({ 
+        status: "success", 
+        method: "apps-script",
+        scriptResponse: result
+      });
+
+    } catch (error: any) {
+      console.error("[Spreadsheet Letter] Error saving Letter:", error.message);
+      res.status(500).json({ 
+        status: "error", 
+        message: "אירעה שגיאה בשמירת המכתב בשרת",
+        details: error.message
+      });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
