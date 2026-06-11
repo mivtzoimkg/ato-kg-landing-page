@@ -1459,18 +1459,8 @@ const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         throw new Error(errData.message || 'שגיאה בשמירת המכתב בשרת');
       }
     } catch (err: any) {
-      console.warn('[LetterToRebbeModal] Backend letter api failed, executing fallback...', err);
-      // Fallback directly to Google Script with formatted source
-      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
-      const fullCustomSource = `מכתב לרבי ליום ג' בתמוז | שם האם: ${motherName.trim()} | תוכן: ${content.trim()}`;
-      
-      try {
-        await saveDonorInfo(fullName, 'שולב בטקסט', 0, fullCustomSource);
-        setIsSubmitted(true);
-      } catch (fallbackErr: any) {
-        console.error('[LetterToRebbeModal] Fallback also failed:', fallbackErr);
-        setErrorMsg('שגיאה בשליחת המכתב. אנא נסה שנית או פנה אלינו.');
-      }
+      console.warn('[LetterToRebbeModal] Backend letter api failed:', err);
+      setErrorMsg(err.message || 'שגיאה בשליחת המכתב. אנא ודאו שקישור המכתבים מוגדר כראוי.');
     } finally {
       setIsSubmitting(false);
     }

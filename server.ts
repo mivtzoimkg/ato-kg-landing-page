@@ -374,7 +374,14 @@ async function startServer() {
       });
     }
 
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS || process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+    const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS;
+
+    if (!scriptUrl) {
+      return res.status(400).json({ 
+        status: "error", 
+        message: "לא הוגדר קישור לסקריפט המכתבים (GOOGLE_SCRIPT_URL_LETTERS). אנא הגדירו אותו בהגדרות האפליקציה (Settings -> Environment variables)." 
+      });
+    }
 
     try {
       console.log(`[Spreadsheet] Saving letter from: ${fullName.trim()} (Mother: ${motherName || 'N/A'})`);
