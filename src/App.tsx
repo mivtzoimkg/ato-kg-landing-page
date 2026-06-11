@@ -1455,8 +1455,19 @@ const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       if (response.ok) {
         setIsSubmitted(true);
       } else {
-        const errData = await response.json();
-        throw new Error(errData.message || 'שגיאה בשמירת המכתב בשרת');
+        const text = await response.text();
+        let errMsg = 'שגיאה בשמירת המכתב בשרת';
+        try {
+          const errData = JSON.parse(text);
+          errMsg = errData.message || errMsg;
+        } catch {
+          if (text.includes("GOOGLE_SCRIPT_URL_LETTERS")) {
+            errMsg = 'לא הוגדר קישור לסקריפט המכתבים (GOOGLE_SCRIPT_URL_LETTERS). אנא הגדירו אותו בלשונית Settings -> Environment variables.';
+          } else {
+            errMsg = `שגיאה (קוד ${response.status}): ${text.substring(0, 120)}`;
+          }
+        }
+        throw new Error(errMsg);
       }
     } catch (err: any) {
       console.warn('[LetterToRebbeModal] Backend letter api failed:', err);
