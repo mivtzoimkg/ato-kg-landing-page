@@ -1470,8 +1470,55 @@ const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         throw new Error(errMsg);
       }
     } catch (err: any) {
-      console.warn('[LetterToRebbeModal] Backend letter api failed:', err);
-      setErrorMsg(err.message || 'שגיאה בשליחת המכתב. אנא ודאו שקישור המכתבים מוגדר כראוי.');
+      console.warn('[LetterToRebbeModal] Backend letter api failed, trying client-side direct fallback...', err);
+      
+      const directLettersUrl = (import.meta as any).env.VITE_GOOGLE_SCRIPT_URL_LETTERS;
+      
+      if (!directLettersUrl) {
+        setErrorMsg('שגיאה: לא הוגדר קישור לסקריפט המכתבים בשרת או בסביבת האתר (VITE_GOOGLE_SCRIPT_URL_LETTERS). לקריאה ישירה מהדפדפן (כמו ב-Vercel), אנא הגדירו משתנה סביבה זה בהגדרות ה-Vercel שלכם.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('[LetterToRebbeModal] Sending directly to client fallback URL:', directLettersUrl);
+      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+      const payload = {
+        date: dateStr,
+        fullName: fullName.trim(),
+        motherName: motherName.trim(),
+        content: content.trim(),
+        source: "מכתב לג' בתמוז",
+
+        "תאריך ושעה": dateStr,
+        "שם": fullName.trim(),
+        "שם האם": motherName.trim(),
+        "בקשות": content.trim()
+      };
+
+      try {
+        await fetch(directLettersUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(payload),
+        });
+        console.log('[LetterToRebbeModal] Client-side direct call to Google App Script completed successfully.');
+        setIsSubmitted(true);
+      } catch (directError) {
+        console.error('[LetterToRebbeModal] Direct CORS call failed, trying with no-cors mode...', directError);
+        try {
+          await fetch(directLettersUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify(payload),
+          });
+          console.log('[LetterToRebbeModal] Client-side direct no-cors call completed.');
+          setIsSubmitted(true);
+        } catch (noCorsError: any) {
+          console.error('[LetterToRebbeModal] Hard failure on both backend and client direct calls:', noCorsError);
+          setErrorMsg(`שגיאה בשמירת המכתב ישירות לגוגל: ${noCorsError.message || 'אנא ודאו שכתובת הסקריפט נכונה'}`);
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
