@@ -121,6 +121,13 @@ const REVOLUTION_OPTIONS = [
 const GOAL = 500000;
 const INITIAL_RAISED = 342500;
 
+// === הגדרות קישורי גוגל שיטס (Google Apps Script Web App URLs) ===
+// קישור ברירת מחדל עבור תשלומים ותרומות
+const DEFAULT_SCRIPT_URL_DONATIONS = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+
+// קישור ברירת מחדל עבור מכתבים/ברכות לרבי (תוכלו להדביק כאן את הקישור שלכם כדי שיעבוד לכל המשתמשים!)
+const DEFAULT_SCRIPT_URL_LETTERS = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec"; 
+
 const saveDonorInfo = async (fullName: string, email: string, amount: number, source: string) => {
   const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
   const payload = {
@@ -136,14 +143,19 @@ const saveDonorInfo = async (fullName: string, email: string, amount: number, so
     "סוג": source
   };
 
-  const scriptUrl = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+  const scriptUrl = DEFAULT_SCRIPT_URL_DONATIONS;
 
   try {
     console.log('[saveDonorInfo] Attempting to send donor info to backend server /api/donors...');
     const response = await fetch('/api/donors', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, email, amount, source }),
+      body: JSON.stringify({ 
+        fullName, 
+        email, 
+        amount, 
+        source
+      }),
     });
 
     if (response.ok) {
@@ -1441,6 +1453,19 @@ const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
     setIsSubmitting(true);
     setErrorMsg('');
 
+    const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+    const payload = {
+      date: dateStr,
+      fullName: fullName.trim(),
+      motherName: motherName.trim(),
+      content: content.trim(),
+      source: "מכתב לג' בתמוז",
+      "תאריך ושעה": dateStr,
+      "שם": fullName.trim(),
+      "שם האם": motherName.trim(),
+      "בקשות": content.trim()
+    };
+
     try {
       const response = await fetch('/api/letters', {
         method: 'POST',
@@ -1455,53 +1480,19 @@ const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
       if (response.ok) {
         setIsSubmitted(true);
       } else {
-        const text = await response.text();
-        let errMsg = 'שגיאה בשמירת המכתב בשרת';
-        try {
-          const errData = JSON.parse(text);
-          errMsg = errData.message || errMsg;
-        } catch {
-          if (text.includes("GOOGLE_SCRIPT_URL_LETTERS")) {
-            errMsg = 'לא הוגדר קישור לסקריפט המכתבים (GOOGLE_SCRIPT_URL_LETTERS). אנא הגדירו אותו בלשונית Settings -> Environment variables.';
-          } else {
-            errMsg = `שגיאה (קוד ${response.status}): ${text.substring(0, 120)}`;
-          }
-        }
-        throw new Error(errMsg);
+        throw new Error(`Server returned code ${response.status}`);
       }
     } catch (err: any) {
       console.warn('[LetterToRebbeModal] Backend letter api failed, trying client-side direct fallback...', err);
       
-      const directLettersUrl = (import.meta as any).env.VITE_GOOGLE_SCRIPT_URL_LETTERS;
+      const directLettersUrl = DEFAULT_SCRIPT_URL_LETTERS;
       
-      if (!directLettersUrl) {
-        setErrorMsg('שגיאה: לא הוגדר קישור לסקריפט המכתבים בשרת או בסביבת האתר (VITE_GOOGLE_SCRIPT_URL_LETTERS). לקריאה ישירה מהדפדפן (כמו ב-Vercel), אנא הגדירו משתנה סביבה זה בהגדרות ה-Vercel שלכם.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      console.log('[LetterToRebbeModal] Sending directly to client fallback URL:', directLettersUrl);
-      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
-      const payload = {
-        date: dateStr,
-        fullName: fullName.trim(),
-        motherName: motherName.trim(),
-        content: content.trim(),
-        source: "מכתב לג' בתמוז",
-
-        "תאריך ושעה": dateStr,
-        "שם": fullName.trim(),
-        "שם האם": motherName.trim(),
-        "בקשות": content.trim()
-      };
-
       try {
         await fetch(directLettersUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify(payload),
         });
-        console.log('[LetterToRebbeModal] Client-side direct call to Google App Script completed successfully.');
         setIsSubmitted(true);
       } catch (directError) {
         console.error('[LetterToRebbeModal] Direct CORS call failed, trying with no-cors mode...', directError);
@@ -1512,11 +1503,10 @@ const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(payload),
           });
-          console.log('[LetterToRebbeModal] Client-side direct no-cors call completed.');
           setIsSubmitted(true);
         } catch (noCorsError: any) {
           console.error('[LetterToRebbeModal] Hard failure on both backend and client direct calls:', noCorsError);
-          setErrorMsg(`שגיאה בשמירת המכתב ישירות לגוגל: ${noCorsError.message || 'אנא ודאו שכתובת הסקריפט נכונה'}`);
+          setErrorMsg('ארעה שגיאה בשליחת המכתב. אנא ודאו שאתם מחוברים לאינטרנט ונסו שוב כעבור מספר רגעים.');
         }
       }
     } finally {

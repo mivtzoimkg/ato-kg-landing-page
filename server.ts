@@ -114,38 +114,6 @@ async function startServer() {
     }
   });
 
-  app.post("/api/test-sheets-url", async (req, res) => {
-    const { url } = req.body;
-    if (!url || typeof url !== "string" || !url.startsWith("https://script.google.com")) {
-      return res.status(400).json({ status: "error", message: "כתובת סקריפט לא תקינה" });
-    }
-
-    try {
-      console.log(`[Diagnostic Tool] Testing manually supplied Google Script URL: ${url}`);
-      const testPayload = {
-        date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-        fullName: "בדיקת חיבור ידנית",
-        email: "test-admin@example.com",
-        amount: 5,
-        source: "אבחון ידני מהאתר"
-      };
-
-      const result = await executeGoogleScriptCall(url, testPayload);
-      return res.json({
-        status: "success",
-        message: "התשובה התקבלה בהצלחה מגוגל!",
-        googleResponse: result
-      });
-    } catch (err: any) {
-      console.error("[Diagnostic Tool] Manual Test Sheets connection failed:", err.message);
-      return res.status(500).json({
-        status: "error",
-        message: "החיבור לכתובת זו נכשל",
-        details: err.message
-      });
-    }
-  });
-
   // SMS notification helper function
   async function sendAdminSMS(amount: number, fullName: string, source: string) {
     const adminNumber = process.env.ADMIN_MOBILE_NUMBER || "0585770026";
@@ -303,7 +271,8 @@ async function startServer() {
     }
     
     // Default to the provided script URL if ENV is missing
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+    const scriptUrl = process.env.GOOGLE_SCRIPT_URL || 
+                      "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
     console.log(`[Spreadsheet] Using Script URL starting with: ${scriptUrl.substring(0, 35)}...`);
     
     // Trigger SMS notification was paused for now at user request
@@ -374,14 +343,9 @@ async function startServer() {
       });
     }
 
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS;
-
-    if (!scriptUrl) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "לא הוגדר קישור לסקריפט המכתבים (GOOGLE_SCRIPT_URL_LETTERS). אנא הגדירו אותו בהגדרות האפליקציה (Settings -> Environment variables)." 
-      });
-    }
+    const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS || 
+                      process.env.GOOGLE_SCRIPT_URL || 
+                      "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
 
     try {
       console.log(`[Spreadsheet] Saving letter from: ${fullName.trim()} (Mother: ${motherName || 'N/A'})`);
