@@ -123,9 +123,9 @@ const INITIAL_RAISED = 342500;
 
 // === הגדרות קישורי גוגל שיטס (Google Apps Script Web App URLs) ===
 // קישור ברירת מחדל עבור תשלומים ותרומות
-const DEFAULT_SCRIPT_URL_DONATIONS = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
+const DEFAULT_SCRIPT_URL_DONATIONS = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec"; 
 
-// קישור ברירת מחדל עבור מכתבים/ברכות לרבי (תוכלו להדביק כאן את הקישור שלכם כדי שיעבוד לכל המשתמשים!)
+// קישור ברירת מחדל עבור מכתבים/ברכות לרבי (אם ברצונכם להחליף לשיטס אחר, החליפו את הכתובת כאן או בהגדרות השרת כמתואר במדריך)
 const DEFAULT_SCRIPT_URL_LETTERS = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec"; 
 
 const saveDonorInfo = async (fullName: string, email: string, amount: number, source: string) => {
