@@ -3,8 +3,45 @@ import { createServer as createViteServer } from "vite";
 import path from "path";
 import dotenv from "dotenv";
 import axios from "axios";
+import { randomUUID } from "crypto";
 
 dotenv.config();
+
+// מחלקת שגיאה מרכזית
+class AppError extends Error {
+  statusCode: number;
+  isOperational: boolean;
+  constructor(message: string, statusCode = 500, isOperational = true) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = isOperational;
+  }
+}
+
+// עוטף כל async route - שגיאה שנזרקת בפנים מגיעה אוטומטית ל-middleware
+function asyncHandler(fn: (req: express.Request, res: express.Response, next: express.NextFunction) => Promise<any>) {
+  return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    fn(req, res, next).catch(next);
+  };
+}
+
+// פונקציית עזר לקבלת משתנה סביבה חובה בזמן ריצה בלבד (Lazy Initialization)
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new AppError(`חסר משתנה סביבה נדרש: ${name}. יש להגדיר אותו בהגדרות או בקובץ .env`, 500);
+  }
+  return value;
+}
+
+// תפיסת שגיאות לא צפויות ברמת התהליך
+process.on("unhandledRejection", (reason) => {
+  console.error("[Fatal] Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[Fatal] Uncaught exception:", err);
+  process.exit(1);
+});
 
 async function startServer() {
   const app = express();
@@ -12,10 +49,16 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Middleware to attach requestId to each request
+  app.use((req, res, next) => {
+    (req as any).requestId = randomUUID().slice(0, 8);
+    next();
+  });
+
   // Helper to execute Google Apps Script requests with robust 302/JSON redirection handling
-  async function executeGoogleScriptCall(url: string, payload: any) {
+  async function executeGoogleScriptCall(requestId: string, url: string, payload: any) {
     try {
-      console.log(`[GoogleScript] Attempting native fetch post to: ${url}`);
+      console.log(`[${requestId}] [GoogleScript] Attempting native fetch post to: ${url}`);
       const resp = await fetch(url, {
         method: "POST",
         headers: {
@@ -26,31 +69,39 @@ async function startServer() {
       });
       
       const text = await resp.text();
-      console.log(`[GoogleScript] Response status: ${resp.status}, content length: ${text.length}`);
+      console.log(`[${requestId}] [GoogleScript] Response status: ${resp.status}, content length: ${text.length}`);
       
       // Check if the response is actually a Google Sign-In redirect page, which happens on permission mismatch
       if (text.includes("Sign in") || text.includes("Google Accounts") || text.includes("login")) {
-        throw new Error("גוגל דורש התחברות (שגיאה 401/403). עליכם להגדיר את ה-doPost ב-Apps Script כבעל גישה ל-Anyone (כולל משתמשים אנונימיים). בלי זה, שרת גוגל חוסם קריאות חיצוניות.");
+        throw new AppError("גוגל דורש התחברות (שגיאה 401/403). עליכם להגדיר את ה-doPost ב-Apps Script כבעל גישה ל-Anyone (כולל משתמשים אנונימיים). בלי זה, שרת גוגל חוסם קריאות חיצוניות.", 401);
       }
       
       try {
         const parsed = JSON.parse(text);
         if (parsed.status === "error" || parsed.error) {
-          throw new Error(parsed.message || parsed.error || "שגיאה פנימית בסקריפט גוגל");
+          throw new AppError(parsed.message || parsed.error || "שגיאה פנימית בסקריפט גוגל", 502);
         }
         return parsed;
       } catch (jsonErr: any) {
-        if (jsonErr.message && jsonErr.message.includes("גוגל דורש התחברות")) {
+        if (jsonErr instanceof AppError) {
           throw jsonErr;
         }
-        // If the return was short, raw text, let's assume it was successful
-        if (text && text.trim().length > 0 && text.trim().length < 200) {
-          return { status: "success", text };
+        if (!resp.ok) {
+          throw new AppError(
+            `גוגל שיטס החזיר סטטוס ${resp.status}: ${text.substring(0, 150)}`,
+            502
+          );
         }
-        throw new Error(`תשובת הגוגל שיטס אינה בפורמט JSON תקין. ייתכן שהסקריפט לא הותקן כראוי. תוכן שהתקבל: ${text.substring(0, 150)}...`);
+        throw new AppError(
+          `תשובת הגוגל שיטס אינה בפורמט JSON תקין. תוכן שהתקבל: ${text.substring(0, 150)}`,
+          502
+        );
       }
     } catch (err: any) {
-      console.warn(`[GoogleScript] Native fetch failed: ${err.message}. Trying Axios with standard redirects.`);
+      if (err instanceof AppError) {
+        throw err;
+      }
+      console.warn(`[${requestId}] [GoogleScript] Native fetch failed: ${err.message}. Trying Axios with standard redirects.`);
       try {
         const response = await axios.post(url, payload, {
           headers: {
@@ -63,73 +114,41 @@ async function startServer() {
         const data = response.data;
         if (typeof data === "string") {
           if (data.includes("Sign in") || data.includes("Google Accounts") || data.includes("login")) {
-            throw new Error("גוגל דורש התחברות (שגיאה 401/403). עליכם להגדיר את ה-doPost ב-Apps Script כבעל גישה ל-Anyone (כולל משתמשים אנונימיים). בלי זה, שרת גוגל חוסם קריאות חיצוניות.");
+            throw new AppError("גוגל דורש התחברות (שגיאה 401/403). עליכם להגדיר את ה-doPost ב-Apps Script כבעל גישה ל-Anyone (כולל משתמשים אנונימיים). בלי זה, שרת גוגל חוסם קריאות חיצוניות.", 401);
           }
           try {
             return JSON.parse(data);
           } catch {
-            return { status: "raw", text: data.substring(0, 500) };
+            throw new AppError(`תשובת הגוגל שיטס אינה בפורמט JSON תקין. תוכן שהתקבל: ${data.substring(0, 150)}`, 502);
           }
         }
         return data;
       } catch (axiosErr: any) {
-        console.error("[GoogleScript] Axios fallback also failed:", axiosErr.message);
-        throw new Error(err.message || axiosErr.message);
+        if (axiosErr instanceof AppError) {
+          throw axiosErr;
+        }
+        console.error(`[${requestId}] [GoogleScript] Axios fallback also failed:`, axiosErr.message);
+        throw new AppError(err.message || axiosErr.message, 502);
       }
     }
   }
 
-  // API routes
-  app.get("/api/test-sheets", async (req, res) => {
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL || "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
-    if (!scriptUrl) {
-      return res.status(400).json({ status: "error", message: "GOOGLE_SCRIPT_URL is not configured" });
-    }
-
-    try {
-      console.log(`[Diagnostic] Testing Google Script connection to: ${scriptUrl}`);
-      const testPayload = {
-        date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
-        fullName: "בדיקת מערכת תקינות",
-        email: "test@example.com",
-        amount: 1,
-        source: "חיבור בדיקה - אבחון עצמי"
-      };
-
-      const result = await executeGoogleScriptCall(scriptUrl, testPayload);
-      return res.json({
-        status: "success",
-        message: "השרת הצליח לשלוח קריאה ולקבל תשובה מגוגל!",
-        googleResponse: result,
-        info: "שרת האפליקציה הצליח ליצור קשר עם גוגל בהצלחה. אם המידע לא מופיע כראוי בגליון, ודאו שקוד ה-doPost בסקריפט שלכם נכון."
-      });
-    } catch (err: any) {
-      console.error("[Diagnostic] Test Sheets connection failed:", err.message);
-      return res.status(500).json({
-        status: "error",
-        message: "חיבור לגוגל נכשל",
-        details: err.message,
-        suggestion: "ודאו שכתובת ה-Web App הועתקה במלואה, שהסקריפט פורסם (Deploy) ושהגדרתם גישה לכל אחד (Anyone, even anonymous)."
-      });
-    }
-  });
-
   // SMS notification helper function
-  async function sendAdminSMS(amount: number, fullName: string, source: string) {
-    const adminNumber = process.env.ADMIN_MOBILE_NUMBER || "0585770026";
+  async function sendAdminSMS(requestId: string, amount: number, fullName: string, source: string) {
+    const adminNumber = process.env.ADMIN_MOBILE_NUMBER;
     if (!adminNumber) {
-      console.log("[SMS] ADMIN_MOBILE_NUMBER is not configured. SMS alert skipped.");
+      console.log(`[${requestId}] [SMS] ADMIN_MOBILE_NUMBER is not configured. SMS alert skipped.`);
       return;
     }
 
     const message = `איגוד תלמידי הישיבות: תרומה חדשה בסך ₪${amount} התקבלה מאת ${fullName} עבור ${source}`;
-    console.log(`[SMS] Sending notification to ${adminNumber}...`);
+    console.log(`[${requestId}] [SMS] Sending notification to ${adminNumber}...`);
 
     // 1. Try ActiveTrail configuration if present (ActiveTrail SMS operational API)
     const activeTrailApiToken = process.env.ACTIVETRAIL_API_TOKEN;
     if (activeTrailApiToken) {
       try {
-        console.log(`[SMS] Attempting ActiveTrail Operational SMS delivery...`);
+        console.log(`[${requestId}] [SMS] Attempting ActiveTrail Operational SMS delivery...`);
         const senderName = (process.env.ACTIVETRAIL_SENDER || "Mivtzoim").replace(/[^a-zA-Z0-9]/g, "").substring(0, 11);
         
         const payload = {
@@ -159,10 +178,10 @@ async function startServer() {
             timeout: 5000
           }
         );
-        console.log(`[SMS] ActiveTrail SMS successfully sent! Response:`, activeTrailRes.data);
+        console.log(`[${requestId}] [SMS] ActiveTrail SMS successfully sent! Response:`, activeTrailRes.data);
         return;
       } catch (err: any) {
-        console.error(`[SMS] ActiveTrail SMS delivery failed:`, err.response?.data || err.message);
+        console.error(`[${requestId}] [SMS] ActiveTrail SMS delivery failed:`, err.response?.data || err.message);
       }
     }
 
@@ -173,7 +192,7 @@ async function startServer() {
 
     if (twilioSid && twilioToken && twilioFrom) {
       try {
-        console.log(`[SMS] Attempting Twilio SMS delivery...`);
+        console.log(`[${requestId}] [SMS] Attempting Twilio SMS delivery...`);
         const b64Auth = Buffer.from(`${twilioSid}:${twilioToken}`).toString('base64');
         const params = new URLSearchParams();
         params.append('To', adminNumber);
@@ -191,10 +210,10 @@ async function startServer() {
             timeout: 5000
           }
         );
-        console.log(`[SMS] Twilio message successfully dispatched. SID: ${twilioRes.data?.sid}`);
+        console.log(`[${requestId}] [SMS] Twilio message successfully dispatched. SID: ${twilioRes.data?.sid}`);
         return;
       } catch (err: any) {
-        console.error(`[SMS] Twilio delivery failed:`, err.response?.data || err.message);
+        console.error(`[${requestId}] [SMS] Twilio delivery failed:`, err.response?.data || err.message);
       }
     }
 
@@ -202,7 +221,7 @@ async function startServer() {
     const gatewayUrl = process.env.SMS_GATEWAY_URL;
     if (gatewayUrl) {
       try {
-        console.log(`[SMS] Attempting SMS Gateway Webhook delivery...`);
+        console.log(`[${requestId}] [SMS] Attempting SMS Gateway Webhook delivery...`);
         let finalUrl = gatewayUrl
           .replace(/\{\{NUMBER\}\}/g, encodeURIComponent(adminNumber))
           .replace(/\{\{MESSAGE\}\}/g, encodeURIComponent(message));
@@ -213,7 +232,7 @@ async function startServer() {
           try {
             headers = JSON.parse(process.env.SMS_GATEWAY_HEADERS_JSON);
           } catch (e) {
-            console.error('[SMS] Failed to parse SMS_GATEWAY_HEADERS_JSON:', e);
+            console.error(`[${requestId}] [SMS] Failed to parse SMS_GATEWAY_HEADERS_JSON:`, e);
           }
         }
 
@@ -225,7 +244,7 @@ async function startServer() {
               .replace(/\{\{MESSAGE\}\}/g, message);
             bodyData = JSON.parse(bodyStr);
           } catch (e) {
-            console.error('[SMS] Failed to parse SMS_GATEWAY_BODY_JSON:', e);
+            console.error(`[${requestId}] [SMS] Failed to parse SMS_GATEWAY_BODY_JSON:`, e);
           }
         }
 
@@ -241,148 +260,102 @@ async function startServer() {
         }
 
         const gatewayRes = await axios(axiosConfig);
-        console.log(`[SMS] Gateway URL response status: ${gatewayRes.status}`);
+        console.log(`[${requestId}] [SMS] Gateway URL response status: ${gatewayRes.status}`);
         return;
       } catch (err: any) {
-        console.error(`[SMS] SMS Gateway Webhook delivery failed:`, err.response?.data || err.message);
+        console.error(`[${requestId}] [SMS] SMS Gateway Webhook delivery failed:`, err.response?.data || err.message);
       }
     }
 
-    console.log("[SMS] Neither ActiveTrail, Twilio nor SMS_GATEWAY_URL variables are fully configured. Skipped.");
+    console.error(`[${requestId}] [SMS] All SMS providers failed or are unconfigured for admin notification.`);
   }
 
-  app.post("/api/donors", async (req, res) => {
+  // API Routes
+  app.get("/api/test-sheets", asyncHandler(async (req, res) => {
+    const rid = (req as any).requestId;
+    const scriptUrl = requireEnv("GOOGLE_SCRIPT_URL");
+
+    console.log(`[${rid}] [Diagnostic] Testing Google Script connection to: ${scriptUrl}`);
+    const testPayload = {
+      date: new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" }),
+      fullName: "בדיקת מערכת תקינות",
+      email: "test@example.com",
+      amount: 1,
+      source: "חיבור בדיקה - אבחון עצמי"
+    };
+
+    const result = await executeGoogleScriptCall(rid, scriptUrl, testPayload);
+    return res.json({
+      status: "success",
+      message: "השרת הצליח לשלוח קריאה ולקבל תשובה מגוגל!",
+      googleResponse: result,
+      info: "שרת האפליקציה הצליח ליצור קשר עם גוגל בהצלחה. אם המידע לא מופיע כראוי בגליון, ודאו שקוד ה-doPost בסקריפט שלכם נכון."
+    });
+  }));
+
+  app.post("/api/donors", asyncHandler(async (req, res) => {
+    const rid = (req as any).requestId;
     const { fullName, email, amount, source } = req.body;
 
     // Server-side robust validation
     if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "נא להזין שם מלא תקין." 
-      });
+      throw new AppError("נא להזין שם מלא תקין.", 400);
     }
 
     const numericAmount = Number(amount);
     if (!amount || isNaN(numericAmount) || numericAmount <= 0) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "סכום התרומה חייב להיות מספר חיובי גדול מאפס." 
-      });
+      throw new AppError("סכום התרומה חייב להיות מספר חיובי גדול מאפס.", 400);
     }
-    
-    // Default to the provided script URL if ENV is missing
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL || 
-                      "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec";
-    console.log(`[Spreadsheet] Using Script URL starting with: ${scriptUrl.substring(0, 35)}...`);
+
+    if (email !== undefined && email !== null) {
+      if (typeof email !== "string" || (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))) {
+        throw new AppError("כתובת האימייל אינה תקינה.", 400);
+      }
+    }
+
+    if (source !== undefined && typeof source !== "string") {
+      throw new AppError("שדה המקור (source) חייב להיות מחרוזת.", 400);
+    }
+
+    const scriptUrl = requireEnv("GOOGLE_SCRIPT_URL");
+    console.log(`[${rid}] [Spreadsheet] Using Script URL starting with: ${scriptUrl.substring(0, 35)}...`);
     
     // Trigger SMS notification was paused for now at user request
     /*
-    sendAdminSMS(numericAmount, fullName, source).catch(err => {
-      console.error("[SMS] Background SMS send error:", err);
+    sendAdminSMS(rid, numericAmount, fullName, source).catch(err => {
+      console.error(`[${rid}] [SMS] Background SMS send error:`, err);
     });
     */
 
-    try {
-      console.log(`[Spreadsheet] Attempting to save donor: ${fullName.trim()} (${numericAmount} NIS)`);
-      
-      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
-      const payload = {
-        // English keys
-        date: dateStr,
-        fullName: fullName.trim(),
-        email: email || "N/A",
-        amount: numericAmount,
-        source: source || "תרומה רגילה",
+    console.log(`[${rid}] [Spreadsheet] Attempting to save donor: ${fullName.trim()} (${numericAmount} NIS)`);
+    
+    const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
+    const payload = {
+      // English keys
+      date: dateStr,
+      fullName: fullName.trim(),
+      email: email || "N/A",
+      amount: numericAmount,
+      source: source || "תרומה רגילה",
 
-        // Hebrew keys requested by the user
-        "תאריך ושעה": dateStr,
-        "שם": fullName.trim(),
-        "מייל": email || "N/A",
-        "סכום": numericAmount,
-        "סוג": source || "תרומה רגילה"
-      };
+      // Hebrew keys requested by the user
+      "תאריך ושעה": dateStr,
+      "שם": fullName.trim(),
+      "מייל": email || "N/A",
+      "סכום": numericAmount,
+      "סוג": source || "תרומה רגילה"
+    };
 
-      const result = await executeGoogleScriptCall(scriptUrl, payload);
-      
-      console.log(`[Spreadsheet] Response from script:`, result);
-      
-      return res.json({ 
-        status: "success", 
-        method: "apps-script",
-        scriptResponse: result
-      });
-
-    } catch (error: any) {
-      console.error("[Spreadsheet] Critical Error:", error.message);
-      
-      let errorMessage = "Failed to save to Google Sheets via Script";
-      let details = error.message;
-
-      res.status(500).json({ 
-        status: "error", 
-        message: errorMessage,
-        details: details
-      });
-    }
-  });
-
-  app.post("/api/letters", async (req, res) => {
-    const { fullName, motherName, content, email, phone } = req.body;
-
-    if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "נא להזין שם מלא." 
-      });
-    }
-
-    if (!content || typeof content !== "string" || !content.trim()) {
-      return res.status(400).json({ 
-        status: "error", 
-        message: "נא לכתוב את תוכן המכתב או הבקשה לברכה." 
-      });
-    }
-
-    const scriptUrl = process.env.GOOGLE_SCRIPT_URL_LETTERS || 
-                      "https://script.google.com/macros/s/AKfycbykeWqhAvXm4mswbJmqneXX47FzN5Ijw4iDsnc0zoTGmo8KhsIdokQ_ntrYlhbSLZEc/exec";
-
-    try {
-      console.log(`[Spreadsheet] Saving letter from: ${fullName.trim()} (Mother: ${motherName || 'N/A'})`);
-      
-      const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
-      
-      const payload = {
-        // Standard keys in English as fallbacks
-        date: dateStr,
-        fullName: fullName.trim(),
-        motherName: motherName || "לא צוין",
-        content: content.trim(),
-        source: "מכתב לג' בתמוז",
-
-        // Plain Hebrew keys mapping to Sheets columns
-        "זמן ושעה": dateStr,
-        "שם": fullName.trim(),
-        "שם האם": motherName || "לא צוין",
-        "בקשות": content.trim()
-      };
-
-      const result = await executeGoogleScriptCall(scriptUrl, payload);
-      
-      return res.json({ 
-        status: "success", 
-        method: "apps-script",
-        scriptResponse: result
-      });
-
-    } catch (error: any) {
-      console.error("[Spreadsheet Letter] Error saving Letter:", error.message);
-      res.status(500).json({ 
-        status: "error", 
-        message: "אירעה שגיאה בשמירת המכתב בשרת",
-        details: error.message
-      });
-    }
-  });
+    const result = await executeGoogleScriptCall(rid, scriptUrl, payload);
+    
+    console.log(`[${rid}] [Spreadsheet] Response from script:`, result);
+    
+    return res.json({ 
+      status: "success", 
+      method: "apps-script",
+      scriptResponse: result
+    });
+  }));
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
@@ -398,6 +371,25 @@ async function startServer() {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
+
+  // 404 - חייב לבוא אחרי כל ה-routes וחלוקת הנתיבים
+  app.use((req, res) => {
+    res.status(404).json({ status: "error", message: "הנתיב המבוקש לא נמצא" });
+  });
+
+  // error middleware מרכזי - חייב לבוא אחרון, עם 4 ארגומנטים בדיוק
+  app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const rid = (req as any).requestId || "unknown";
+    const statusCode = err instanceof AppError ? err.statusCode : 500;
+    const isOperational = err instanceof AppError ? err.isOperational : false;
+
+    console.error(`[${rid}] [Error] ${req.method} ${req.path}:`, err.message, isOperational ? "" : err.stack);
+
+    res.status(statusCode).json({
+      status: "error",
+      message: isOperational ? err.message : "אירעה שגיאה בשרת. נסו שוב מאוחר יותר.",
+    });
+  });
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);

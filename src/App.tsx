@@ -26,7 +26,9 @@ import {
   Copy,
   Check,
   AlertCircle,
-  Code
+  Code,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 // --- Types ---
@@ -43,13 +45,13 @@ const DONATION_OPTIONS: DonationOption[] = [
   { 
     id: 5, 
     amount: 20, 
-    title: "שותף ידיד", 
+    title: "שותף צעיר", 
     description: "שותף בזכויות זיכוי הרבים",
   },
   { 
     id: 6, 
     amount: 50, 
-    title: "שותף צעיר", 
+    title: "שותף ידיד", 
     description: "לוקחים חלק בזכות הגדולה של זיכוי הרבים!",
   },
   { 
@@ -105,14 +107,14 @@ const REVOLUTION_OPTIONS = [
   { 
     id: 'rev-4', 
     amount: 50, 
-    title: "שותף צעיר", 
+    title: "שותף ידיד", 
     icon: Users,
     description: "חבר את\"ה"
   },
   { 
     id: 'rev-5', 
     amount: 20, 
-    title: "שותף ידיד", 
+    title: "שותף צעיר", 
     icon: Heart,
     description: "גם אני שותף במבצע תפילין"
   },
@@ -124,9 +126,6 @@ const INITIAL_RAISED = 342500;
 // === הגדרות קישורי גוגל שיטס (Google Apps Script Web App URLs) ===
 // קישור ברירת מחדל עבור תשלומים ותרומות
 const DEFAULT_SCRIPT_URL_DONATIONS = "https://script.google.com/macros/s/AKfycbyhaHgl__FJ3BTeSNOwhdhPm-mZYEgdPjNuds1dUzqwFLtOE8KRho8eV_r05PJ_ttfH/exec"; 
-
-// קישור ברירת מחדל עבור מכתבים/ברכות לרבי (אם ברצונכם להחליף לשיטס אחר, החליפו את הכתובת כאן או בהגדרות השרת כמתואר במדריך)
-const DEFAULT_SCRIPT_URL_LETTERS = "https://script.google.com/macros/s/AKfycbykeWqhAvXm4mswbJmqneXX47FzN5Ijw4iDsnc0zoTGmo8KhsIdokQ_ntrYlhbSLZEc/exec"; 
 
 const saveDonorInfo = async (fullName: string, email: string, amount: number, source: string) => {
   const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
@@ -193,7 +192,7 @@ const saveDonorInfo = async (fullName: string, email: string, amount: number, so
 
 // --- Components ---
 
-const Navbar = ({ onPrayersClick, onLetterClick }: { onPrayersClick?: () => void; onLetterClick?: () => void }) => {
+const Navbar = ({ onPrayersClick }: { onPrayersClick?: () => void }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -216,14 +215,18 @@ const Navbar = ({ onPrayersClick, onLetterClick }: { onPrayersClick?: () => void
         </div>
 
         <div className="hidden md:flex items-center gap-8">
-          <button onClick={onLetterClick} className="text-[#5F1427] hover:text-[#4E0F1F] font-extrabold pb-0.5 border-b-2 border-[#5F1427]/15 hover:border-[#5F1427] transition-all cursor-pointer">כתיבה לרבי</button>
           <button onClick={onPrayersClick} className="text-gray-700 hover:text-primary font-bold transition-colors cursor-pointer">סדר הנחת תפילין</button>
           <a href="#impact" className="text-gray-700 hover:text-primary font-medium transition-colors">ההשפעה שלנו</a>
           <a href="#donate" className="bg-primary text-white px-6 py-2 rounded-full font-bold hover:bg-opacity-90 transition-all shadow-md hover:shadow-lg">תרום עכשיו</a>
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={onLetterClick} className="bg-[#5F1427] text-white px-4 py-2 rounded-full font-bold text-xs shadow-md md:hidden hover:bg-[#4E0F1F] cursor-pointer">כתיבה לרבי</button>
+          <a 
+            href="#donate" 
+            className="md:hidden bg-primary hover:bg-opacity-95 text-white px-4 py-2 rounded-full font-black text-xs shadow-md transition-all cursor-pointer"
+          >
+            תרום עכשיו
+          </a>
           <button className="md:hidden text-secondary" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -239,7 +242,6 @@ const Navbar = ({ onPrayersClick, onLetterClick }: { onPrayersClick?: () => void
             exit={{ opacity: 0, y: -20 }}
             className="md:hidden absolute top-full left-0 right-0 bg-white shadow-xl border-t border-gray-100 p-4 flex flex-col gap-4 text-right"
           >
-            <button onClick={() => { onLetterClick?.(); setIsMenuOpen(false); }} className="text-right text-lg font-bold text-[#5F1427] p-2 border-b border-gray-100">כתיבה לרבי</button>
             <button onClick={() => { onPrayersClick?.(); setIsMenuOpen(false); }} className="text-right text-lg font-bold text-gray-800 p-2 border-b border-gray-100">סדר הנחת תפילין</button>
             <a href="#impact" onClick={() => setIsMenuOpen(false)} className="text-lg font-medium text-gray-800 p-2">ההשפעה שלנו</a>
             <a href="#donate" onClick={() => setIsMenuOpen(false)} className="bg-primary text-white text-center py-3 rounded-xl font-bold">תרום עכשיו</a>
@@ -251,7 +253,7 @@ const Navbar = ({ onPrayersClick, onLetterClick }: { onPrayersClick?: () => void
 };
 
 const Hero = ({ onPrayersClick }: { onPrayersClick: () => void }) => {
-  const [stack, setStack] = useState([
+  const ORIGINAL_IMAGES = [
     "/photos/mivtzoim_img_1.JPG.jpeg",
     "/photos/mivtzoim_img_2.JPG.jpeg",
     "/photos/mivtzoim_img_3.JPG.jpeg",
@@ -266,20 +268,43 @@ const Hero = ({ onPrayersClick }: { onPrayersClick: () => void }) => {
     "/photos/mivtzoim_img_12.JPG.jpeg",
     "/photos/mivtzoim_img_13.JPG.jpeg",
     "/photos/mivtzoim_img_14.JPG.jpeg",
-  ]);
+  ];
+
+  const [stack, setStack] = useState([...ORIGINAL_IMAGES]);
+  const lastHeroInteraction = useRef(Date.now());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setStack((prev) => {
-        const [first, ...rest] = prev;
-        return [...rest, first];
-      });
-    }, 2000);
+      // Auto-rotate only if no user interaction occurred in the last 6 seconds
+      if (Date.now() - lastHeroInteraction.current > 6000) {
+        setStack((prev) => {
+          const [first, ...rest] = prev;
+          return [...rest, first];
+        });
+      }
+    }, 2500);
     return () => clearInterval(interval);
   }, []);
 
+  const handleNext = () => {
+    lastHeroInteraction.current = Date.now();
+    setStack((prev) => {
+      const [first, ...rest] = prev;
+      return [...rest, first];
+    });
+  };
+
+  const handlePrev = () => {
+    lastHeroInteraction.current = Date.now();
+    setStack((prev) => {
+      const last = prev[prev.length - 1];
+      const rest = prev.slice(0, prev.length - 1);
+      return [last, ...rest];
+    });
+  };
+
   return (
-    <section className="relative pt-20 pb-8 overflow-hidden">
+    <section className="relative pt-16 pb-4 overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 right-0 w-1/2 h-full bg-primary/5 -skew-x-12 -z-10" />
       <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary/5 rounded-full blur-3xl -z-10" />
@@ -347,42 +372,57 @@ const Hero = ({ onPrayersClick }: { onPrayersClick: () => void }) => {
           </motion.div>
         </motion.div>
 
-        <div className="relative h-[350px] sm:h-[450px] md:h-[500px] flex items-center justify-center mt-8 md:mt-0 order-1 md:order-2">
-          <AnimatePresence mode="popLayout">
-            {stack.slice(0, 3).reverse().map((src, index) => {
-              return (
-                <motion.div
-                  key={src}
-                  layout
-                  initial={{ opacity: 0, scale: 0.8, x: 50 }}
-                  animate={{ 
-                    opacity: 1, 
-                    scale: 1 - (2 - index) * 0.05, 
-                    x: (2 - index) * 20,
-                    y: (2 - index) * -10,
-                    zIndex: index,
-                  }}
-                  exit={{ opacity: 0, x: -100, scale: 0.8 }}
-                  transition={{ duration: 0.5 }}
-                  className="absolute w-56 sm:w-72 md:w-80 aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border-4 border-white bg-gray-100"
-                >
-                  <img src={src} alt="Mivtzoim" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
-                  {index === 2 && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                      className="absolute bottom-6 right-6 bg-white p-2 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 z-20 min-w-[60px]"
-                    >
-                      <img src="/logos/icon.png" alt="Icon" className="w-6 h-6 object-contain" referrerPolicy="no-referrer" />
-                      <span className="text-[10px] font-black uppercase tracking-tighter text-secondary">kiryat gat</span>
-                    </motion.div>
-                  )}
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+        <div className="flex flex-col items-center order-1 md:order-2 mt-8 md:mt-0">
+          <div className="relative w-full h-[350px] sm:h-[450px] md:h-[500px] flex items-center justify-center select-none touch-pan-y">
+            <AnimatePresence mode="popLayout">
+              {stack.slice(0, 3).reverse().map((src, index) => {
+                const isTop = index === 2;
+                return (
+                  <motion.div
+                    key={src}
+                    layout
+                    initial={{ opacity: 0, scale: 0.8, x: 50 }}
+                    animate={{ 
+                      opacity: 1, 
+                      scale: 1 - (2 - index) * 0.05, 
+                      x: (2 - index) * 20,
+                      y: (2 - index) * -10,
+                      zIndex: index,
+                    }}
+                    exit={{ opacity: 0, x: -100, scale: 0.8 }}
+                    transition={{ duration: 0.4 }}
+                    drag={isTop ? "x" : false}
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.6}
+                    onDragEnd={(e, info) => {
+                      if (!isTop) return;
+                      lastHeroInteraction.current = Date.now();
+                      if (info.offset.x < -60) {
+                        handleNext();
+                      } else if (info.offset.x > 60) {
+                        handlePrev();
+                      }
+                    }}
+                    className={`absolute w-56 sm:w-72 md:w-80 aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl border-4 border-white bg-gray-100 ${isTop ? "cursor-grab active:cursor-grabbing" : ""}`}
+                  >
+                    <img src={src} alt="Mivtzoim" className="w-full h-full object-cover pointer-events-none" referrerPolicy="no-referrer" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent pointer-events-none" />
+                    {index === 2 && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="absolute bottom-6 right-6 bg-white p-2 rounded-2xl shadow-xl flex flex-col items-center justify-center gap-1 z-20 min-w-[60px]"
+                      >
+                        <img src="/logos/icon.png" alt="Icon" className="w-6 h-6 object-contain" referrerPolicy="no-referrer" />
+                        <span className="text-[10px] font-black uppercase tracking-tighter text-secondary">kiryat gat</span>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </section>
@@ -393,11 +433,14 @@ const DynamicImageSquare = ({ images, interval = 3000, className = "" }: { image
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const validImages = images.filter(img => !failedImages.has(img));
   const [index, setIndex] = useState(0);
+  const lastInteraction = useRef(Date.now());
 
   useEffect(() => {
     if (validImages.length <= 1) return;
     const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % validImages.length);
+      if (Date.now() - lastInteraction.current > 5000) {
+        setIndex((prev) => (prev + 1) % validImages.length);
+      }
     }, interval);
     return () => clearInterval(timer);
   }, [validImages.length, interval]);
@@ -406,8 +449,17 @@ const DynamicImageSquare = ({ images, interval = 3000, className = "" }: { image
 
   const currentImage = validImages[index % validImages.length];
 
+  const handleNext = () => {
+    lastInteraction.current = Date.now();
+    setIndex((prev) => (prev + 1) % validImages.length);
+  };
+
   return (
-    <div className={`relative overflow-hidden bg-gray-200 flex items-center justify-center ${className}`}>
+    <div 
+      onClick={handleNext}
+      className={`relative overflow-hidden bg-gray-200 flex items-center justify-center cursor-pointer group ${className}`}
+      title={validImages.length > 1 ? "לחץ למעבר לתמונה הבאה" : ""}
+    >
       <AnimatePresence mode="wait">
         <motion.img
           key={currentImage}
@@ -417,11 +469,17 @@ const DynamicImageSquare = ({ images, interval = 3000, className = "" }: { image
           exit={{ opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.8 }}
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
           referrerPolicy="no-referrer"
           onError={() => setFailedImages(prev => new Set(prev).add(currentImage))}
         />
       </AnimatePresence>
+      {validImages.length > 1 && (
+        <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-xs text-white text-[10px] px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 select-none pointer-events-none flex items-center gap-1 z-10">
+          <span>תמונה הבאה</span>
+          <span>👈</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -468,7 +526,7 @@ const HanukkahHero = () => {
   ];
 
   return (
-    <section className="py-16 bg-linear-to-br from-orange-600 via-orange-500 to-yellow-600 relative overflow-hidden">
+    <section className="py-8 bg-linear-to-br from-orange-600 via-orange-500 to-yellow-600 relative overflow-hidden">
       {/* Animated Background Sparks */}
       <div className="absolute inset-0 pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -758,13 +816,13 @@ const DonationGrid = () => {
   };
 
   return (
-    <section id="donate" className="py-24 bg-gray-50">
+    <section id="donate" className="py-12 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-16"
+          className="text-center mb-8"
         >
           <h2 className="text-4xl font-black text-secondary mb-4">בחר את מסלול השותפות שלך</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
@@ -1049,7 +1107,7 @@ const ImpactSection = () => {
   ];
 
   return (
-    <section id="impact" className="py-24 overflow-hidden">
+    <section id="impact" className="py-12 overflow-hidden">
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -1127,7 +1185,7 @@ const ImpactSection = () => {
   );
 };
 
-const Footer = ({ setView, onLetterClick }: { setView?: (v: 'home' | 'prayers') => void; onLetterClick?: () => void }) => {
+const Footer = ({ setView }: { setView?: (v: 'home' | 'prayers') => void }) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = () => {
@@ -1151,9 +1209,9 @@ const Footer = ({ setView, onLetterClick }: { setView?: (v: 'home' | 'prayers') 
   };
 
   return (
-    <footer className="bg-secondary text-white pt-20 pb-10 border-t border-white/5" dir="rtl">
+    <footer className="bg-secondary text-white pt-10 pb-6 border-t border-white/5" dir="rtl">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-16 text-right">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-8 text-right">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1232,20 +1290,6 @@ const Footer = ({ setView, onLetterClick }: { setView?: (v: 'home' | 'prayers') 
               <h5 className="text-lg font-bold mb-6 text-primary">ניווט מהיר</h5>
               <ul className="space-y-4 text-gray-300">
                 <li><button onClick={() => { window.scrollTo(0, 0); setView?.('home'); }} className="hover:text-primary transition-colors cursor-pointer">דף הבית</button></li>
-                <li>
-                  <button 
-                    onClick={() => {
-                      if (onLetterClick) {
-                        onLetterClick();
-                      } else {
-                        window.location.hash = '#rebbe';
-                      }
-                    }}
-                    className="hover:text-amber-300 text-amber-200 font-bold transition-colors cursor-pointer text-right"
-                  >
-                    כתיבה לרבי מליובאוויטש
-                  </button>
-                </li>
                 <li><a href="#impact" className="hover:text-primary transition-colors">פעילות ודיווחים</a></li>
                 <li><a href="#donate" className="hover:text-primary transition-colors">תרומה מאובטחת</a></li>
                 <li><button onClick={() => { window.scrollTo(0, 0); setView?.('prayers'); }} className="hover:text-primary transition-colors cursor-pointer">סדר הנחת תפילין</button></li>
@@ -1280,8 +1324,83 @@ const ImageMarquee = () => {
     "/photos/mivtzoim_img_14.JPG.jpeg",
   ];
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const isHovered = useRef(false);
+  const lastInteractionTime = useRef(Date.now());
+
+  // Triple-copy for seamless endless scrolling loop
+  const tripleImages = [...images, ...images, ...images];
+
+  // Set initial scroll position to the center copy of images so the user can drag either way immediately
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const handleInitialScroll = () => {
+      if (container.scrollWidth > 0) {
+        container.scrollLeft = container.scrollWidth / 3;
+      }
+    };
+    const timer = setTimeout(handleInitialScroll, 150);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Continuous auto-scroller loop
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let animationId: number;
+    const speed = 1.2; // pixels to scroll per frame
+
+    const scrollLoop = () => {
+      const timeSinceInteraction = Date.now() - lastInteractionTime.current;
+      
+      // Auto-scroll only if not dragging, not hovered, and no interaction in the last 1.5 seconds
+      if (!isDragging.current && !isHovered.current && timeSinceInteraction > 1500) {
+        container.scrollLeft += speed;
+
+        const maxScroll = container.scrollWidth / 3;
+        // Seamless loop boundaries
+        if (container.scrollLeft >= maxScroll * 2) {
+          container.scrollLeft -= maxScroll;
+        } else if (container.scrollLeft <= 0) {
+          container.scrollLeft += maxScroll;
+        }
+      }
+      animationId = requestAnimationFrame(scrollLoop);
+    };
+
+    animationId = requestAnimationFrame(scrollLoop);
+    return () => cancelAnimationFrame(animationId);
+  }, []);
+
+  const handleTouchStart = () => {
+    isDragging.current = true;
+    lastInteractionTime.current = Date.now();
+  };
+
+  const handleTouchMove = () => {
+    lastInteractionTime.current = Date.now();
+  };
+
+  const handleTouchEnd = () => {
+    isDragging.current = false;
+  };
+
+  const scrollLeftOrRight = (direction: 'left' | 'right') => {
+    const container = containerRef.current;
+    if (!container) return;
+    lastInteractionTime.current = Date.now();
+    const scrollAmount = window.innerWidth < 640 ? 280 : 360;
+    container.scrollTo({
+      left: container.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount),
+      behavior: 'smooth',
+    });
+  };
+
   return (
-    <section className="py-12 bg-secondary overflow-hidden relative">
+    <section className="py-6 bg-secondary overflow-hidden relative">
       <motion.div 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -1292,7 +1411,7 @@ const ImageMarquee = () => {
         <div className="absolute inset-0 bg-linear-to-b from-secondary via-transparent to-secondary" />
       </motion.div>
       
-      <div className="max-w-7xl mx-auto px-4 mb-10 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 mb-4 relative z-10">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -1313,35 +1432,64 @@ const ImageMarquee = () => {
           </motion.div>
       </div>
 
-      <div className="relative flex w-full overflow-hidden group/marquee select-none touch-pan-y py-10" style={{ direction: 'ltr' }}>
-        <style dangerouslySetInnerHTML={{ __html: `
-          .group\\/marquee::-webkit-scrollbar { display: none; }
-          .group\\/marquee { -ms-overflow-style: none; scrollbar-width: none; }
-        `}} />
-        <div className="animate-marquee flex whitespace-nowrap group-hover/marquee:[animation-play-state:paused]">
-          {[...images, ...images, ...images].map((src, i) => (
-            <motion.div 
-              key={i} 
-              whileHover={{ scale: 1.05, zIndex: 20 }}
-              className="w-64 sm:w-80 h-[400px] sm:h-[480px] flex-shrink-0 px-3 group relative transition-all duration-500"
-            >
-              <div className="w-full h-full rounded-[32px] overflow-hidden shadow-2xl border-4 border-white/10 relative bg-gray-800">
-                <img 
-                  src={src} 
-                  alt={`פעילות ${i}`}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  referrerPolicy="no-referrer"
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${i}/400/600`;
-                  }}
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                  <div className="text-white text-sm font-bold">מבצע תפילין - קרית גת</div>
+      <div className="relative w-full group/container">
+        {/* Navigation arrow overlays (Desktop/Tablet) */}
+        <div className="absolute top-1/2 left-4 -translate-y-1/2 z-30 opacity-0 group-hover/container:opacity-100 transition-opacity duration-300 hidden md:block">
+          <button
+            onClick={() => scrollLeftOrRight('left')}
+            className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer"
+            title="גלול אחורה"
+          >
+            <ChevronLeft size={24} />
+          </button>
+        </div>
+
+        <div className="absolute top-1/2 right-4 -translate-y-1/2 z-30 opacity-0 group-hover/container:opacity-100 transition-opacity duration-300 hidden md:block">
+          <button
+            onClick={() => scrollLeftOrRight('right')}
+            className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer"
+            title="גלול קדימה"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+
+        {/* Scrollable drag container */}
+        <div 
+          ref={containerRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseEnter={() => { isHovered.current = true; }}
+          onMouseLeave={() => { isHovered.current = false; }}
+          className="w-full overflow-x-auto no-scrollbar flex select-none touch-pan-y py-3 scroll-smooth"
+          style={{ direction: 'ltr' }}
+        >
+          <div className="flex whitespace-nowrap">
+            {tripleImages.map((src, i) => (
+              <motion.div 
+                key={i} 
+                whileHover={{ scale: 1.02, zIndex: 20 }}
+                className="w-56 sm:w-72 h-[280px] sm:h-[360px] flex-shrink-0 px-2 group relative transition-all duration-300"
+              >
+                <div className="w-full h-full rounded-[32px] overflow-hidden shadow-2xl border-4 border-white/10 relative bg-gray-800">
+                  <img 
+                    src={src} 
+                    alt={`פעילות ${i}`}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://picsum.photos/seed/${i}/400/600`;
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6 pointer-events-none">
+                    <div className="text-white text-sm font-bold">מבצע תפילין - קרית גת</div>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -1430,282 +1578,13 @@ const PrayersView = ({ onBack }: { onBack: () => void }) => {
           </button>
         </div>
       </main>
-      <Footer setView={onBack ? () => onBack() : undefined} onLetterClick={() => { if (onBack) onBack(); setTimeout(() => { window.location.hash = '#rebbe'; }, 150); }} />
+      <Footer setView={onBack ? () => onBack() : undefined} />
     </div>
   );
 };
 
-const LetterToRebbeModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const [fullName, setFullName] = useState('');
-  const [motherName, setMotherName] = useState('');
-  const [content, setContent] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim() || !motherName.trim() || !content.trim()) {
-      setErrorMsg('נא למלא את כל השדות: שם, שם האם ותוכן הבקשה.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setErrorMsg('');
-
-    const dateStr = new Date().toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
-    const payload = {
-      date: dateStr,
-      fullName: fullName.trim(),
-      motherName: motherName.trim(),
-      content: content.trim(),
-      source: "מכתב לג' בתמוז",
-      "תאריך ושעה": dateStr,
-      "שם": fullName.trim(),
-      "שם האם": motherName.trim(),
-      "בקשות": content.trim()
-    };
-
-    try {
-      const response = await fetch('/api/letters', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          fullName: fullName.trim(), 
-          motherName: motherName.trim(), 
-          content: content.trim()
-        }),
-      });
-
-      if (response.ok) {
-        setIsSubmitted(true);
-      } else {
-        throw new Error(`Server returned code ${response.status}`);
-      }
-    } catch (err: any) {
-      console.warn('[LetterToRebbeModal] Backend letter api failed, trying client-side direct fallback...', err);
-      
-      const directLettersUrl = DEFAULT_SCRIPT_URL_LETTERS;
-      
-      try {
-        await fetch(directLettersUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify(payload),
-        });
-        setIsSubmitted(true);
-      } catch (directError) {
-        console.error('[LetterToRebbeModal] Direct CORS call failed, trying with no-cors mode...', directError);
-        try {
-          await fetch(directLettersUrl, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify(payload),
-          });
-          setIsSubmitted(true);
-        } catch (noCorsError: any) {
-          console.error('[LetterToRebbeModal] Hard failure on both backend and client direct calls:', noCorsError);
-          setErrorMsg('ארעה שגיאה בשליחת המכתב. אנא ודאו שאתם מחוברים לאינטרנט ונסו שוב כעבור מספר רגעים.');
-        }
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleReset = () => {
-    setFullName('');
-    setMotherName('');
-    setContent('');
-    setIsSubmitted(false);
-    setErrorMsg('');
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-      />
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 15 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 15 }}
-        className="relative bg-white w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl flex flex-col border border-gray-100"
-      >
-        {/* Top Banner exactly similar to the screenshot */}
-        <div className="relative h-28 bg-[#E89D52] w-full shrink-0 flex items-center justify-center">
-          {/* Close button inside the banner */}
-          <button 
-            onClick={onClose} 
-            className="absolute top-4 left-4 text-white hover:text-black/80 bg-white/20 hover:bg-white/30 p-2 rounded-full transition-all cursor-pointer border border-white/20 z-50"
-          >
-            <X size={18} />
-          </button>
-
-          {/* Centered Floating White Plate "ברכת הרבי" */}
-          <div className="absolute top-[35%] bg-white px-10 py-3 sm:py-4 rounded-2xl md:rounded-3xl shadow-xl border border-gray-100 min-w-[200px] text-center z-10 transition-transform">
-            <h3 className="text-xl sm:text-2xl font-black text-[#5F1427] tracking-wider leading-none">
-              ברכת הרבי
-            </h3>
-          </div>
-        </div>
-
-        {/* Modal body */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-10 md:p-10">
-          {isSubmitted ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-10 px-4"
-            >
-              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-emerald-150">
-                <CheckCircle2 size={32} />
-              </div>
-              <h4 className="text-2xl font-black text-[#5F1427] mb-3">המכתב נשלח בהצלחה!</h4>
-              <p className="text-gray-650 md:text-md leading-relaxed max-w-sm mx-auto font-medium">
-                מכתבך התקבל במערכת של איגוד תלמידי הישיבות.
-                נשגר ונניח את מכתבך על הציון הקדוש של הרבי מליובאוויטש זי"ע בניו יורק ביום ההילולא ג' בתמוז.
-              </p>
-              
-              {/* Charity Section "צדקה לברכה" */}
-              <div className="mt-8 bg-[#FCFBF8] border border-amber-900/15 rounded-[24px] p-6 sm:p-8 text-right max-w-xl mx-auto shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 left-0 h-[3px] bg-gradient-to-r from-amber-300 via-amber-600 to-amber-300 opacity-50" />
-                <h5 className="text-lg sm:text-xl font-bold text-[#5F1427] mb-3 flex items-center justify-end gap-1.5">
-                  <span>צדקה לברכה</span>
-                </h5>
-                <p className="text-sm sm:text-base text-gray-700 leading-relaxed font-normal mb-6">
-                  לתוספת ברכה נהוג לתרום לצדקה, במיוחד לטובת מפעל השליחות של הרבי. כאן תוכלו לתרום כל סכום שתחפצו ותזכו לשפע ברכה משמים.
-                </p>
-                <div className="flex flex-col sm:flex-row-reverse gap-3.5">
-                  <button
-                    onClick={() => {
-                      window.location.hash = '#shutafim';
-                    }}
-                    className="flex-1 bg-[#5F1427] hover:bg-[#4E0F1F] text-white py-3.5 px-6 rounded-2xl font-black text-sm sm:text-base cursor-pointer transition-all shadow-md flex items-center justify-center gap-2"
-                  >
-                    <span>קביעת סכום לתרומה</span>
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 py-3.5 px-5 rounded-2xl font-black text-xs sm:text-sm cursor-pointer transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <span>כתיבת מכתב נוסף</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-              
-              {/* Form Content Side */}
-              <div className="md:col-span-7 flex flex-col justify-between h-full">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Custom Description Text */}
-                  <div className="text-right text-sm text-gray-700 space-y-3.5 leading-relaxed font-normal mb-6">
-                    <p>
-                      כאן תוכלו לכתוב את שמכם ושמות יקיריכם לתפילה ובקשת ברכה על ציונו הקדוש של הרבי מליובאוויטש. הבקשות נשמרות בדיסקרטיות ונשלחות ישירות אל מקום קברו של הרבי.
-                    </p>
-                    <p>
-                      נסחו את בקשת הברכה שלכם בפתיחות ובשפה חופשית מהלב. קבלו החלטה לקיים מצווה או מעשה טוב, קראו פרק תהלים והוסיפו תפילה אישית לברכת שמיים. לתוספת ברכה נהוג גם לתרום לצדקה עבור מוסדותיו ומפעליו של הרבי.
-                    </p>
-                  </div>
-
-                  {/* Grid for Name and Mother's Name */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <input 
-                        type="text" 
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="שם מקבל/ת הברכה ושם משפחה"
-                        required
-                        className="w-full px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white focus:border-amber-500 focus:outline-none transition-all text-sm text-right leading-tight text-gray-800 font-medium placeholder-gray-400"
-                      />
-                    </div>
-                    <div>
-                      <input 
-                        type="text" 
-                        value={motherName}
-                        onChange={(e) => setMotherName(e.target.value)}
-                        placeholder="שם האם"
-                        required
-                        className="w-full px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white focus:border-amber-500 focus:outline-none transition-all text-sm text-right leading-tight text-gray-800 font-medium placeholder-gray-400"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Input 2: Request content */}
-                  <div>
-                    <textarea 
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="תוכן בקשת הברכה"
-                      rows={6}
-                      required
-                      className="w-full px-4 py-3 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white focus:border-amber-500 focus:outline-none transition-all text-sm text-right leading-normal text-gray-800 font-medium placeholder-gray-400 resize-none"
-                    />
-                  </div>
 
 
-
-                  {errorMsg && (
-                    <div className="text-xs text-red-600 font-bold bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2 text-right justify-end">
-                      <span>{errorMsg}</span>
-                      <span className="text-sm">⚠️</span>
-                    </div>
-                  )}
-
-                  {/* Deep Burgundy Submit Button */}
-                  <div className="pt-2">
-                    <button 
-                      type="submit" 
-                      disabled={isSubmitting}
-                      className="w-full bg-[#5F1427] hover:bg-[#4E0F1F] text-white py-3.5 rounded-xl font-black text-md shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <span className="animate-spin text-lg">⏳</span>
-                          שולח בקשה...
-                        </>
-                      ) : (
-                        <>
-                          לשלוח את הבקשה לציון הרבי
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Classic Portrait Column representing the photo exactly as in the mock */}
-              <div className="md:col-span-5 h-full flex items-center justify-center">
-                <div className="relative w-full rounded-2xl overflow-hidden shadow-xl border border-gray-100 bg-gray-50 aspect-[4/5] sm:aspect-auto">
-                  <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/e/e4/Menachem_Mendel_Schneerson%2C_the_Lubavitcher_Rebbe_portrait.jpg" 
-                    alt='כתיבה לרבי מליובאוויטש זי"ע' 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover object-top transition-transform hover:scale-[1.03] duration-500"
-                    style={{ maxHeight: '420px' }}
-                  />
-                  {/* Subtle elegant gradient overlay on the photo */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-                </div>
-              </div>
-
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
-  );
-};
 
 const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
@@ -1911,7 +1790,6 @@ const RevolutionModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => 
 export default function App() {
   const [view, setViewInternal] = useState<'home' | 'prayers'>('home');
   const [isRevolutionModalOpen, setIsRevolutionModalOpenInternal] = useState(false);
-  const [isLetterModalOpen, setIsLetterModalOpenInternal] = useState(false);
 
   // Synchronize state with URL Hash for smooth history, back-button and deep-link support
   useEffect(() => {
@@ -1920,19 +1798,12 @@ export default function App() {
       if (hash === '#tefilah' || hash === '#prayers') {
         setViewInternal('prayers');
         setIsRevolutionModalOpenInternal(false);
-        setIsLetterModalOpenInternal(false);
       } else if (hash === '#shutafim' || hash === '#revolution' || hash === '#partner') {
         setViewInternal('home');
         setIsRevolutionModalOpenInternal(true);
-        setIsLetterModalOpenInternal(false);
-      } else if (hash === '#letter' || hash === '#michtav' || hash === '#rebbe') {
-        setViewInternal('home');
-        setIsRevolutionModalOpenInternal(false);
-        setIsLetterModalOpenInternal(true);
       } else {
         setViewInternal('home');
         setIsRevolutionModalOpenInternal(false);
-        setIsLetterModalOpenInternal(false);
       }
     };
 
@@ -1970,22 +1841,6 @@ export default function App() {
     }
   };
 
-  const setIsLetterModalOpen = (isOpen: boolean) => {
-    if (isOpen) {
-      window.location.hash = '#rebbe';
-    } else {
-      if (
-        window.location.hash === '#letter' || 
-        window.location.hash === '#michtav' || 
-        window.location.hash === '#rebbe'
-      ) {
-        window.location.hash = '#';
-      } else {
-        setIsLetterModalOpenInternal(false);
-      }
-    }
-  };
-
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [view]);
@@ -1996,7 +1851,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen font-sans" dir="rtl">
-      <Navbar onPrayersClick={() => setView('prayers')} onLetterClick={() => setIsLetterModalOpen(true)} />
+      <Navbar onPrayersClick={() => setView('prayers')} />
       <main>
         <Hero onPrayersClick={() => setView('prayers')} />
         <HanukkahHero />
@@ -2005,9 +1860,9 @@ export default function App() {
         <DonationGrid />
         
         {/* Testimonial Section */}
-        <section className="py-24 bg-primary/5">
+        <section className="py-12 bg-primary/5">
           <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center mb-12">
+            <div className="text-center mb-6">
               <Heart className="text-primary mx-auto mb-6" size={48} />
               <h2 className="text-3xl font-black text-secondary">מה אומרים עלינו בשטח?</h2>
             </div>
@@ -2044,7 +1899,7 @@ export default function App() {
         </section>
 
         {/* Call to Action */}
-        <section className="py-20 bg-white">
+        <section className="py-10 bg-white">
           <div className="max-w-5xl mx-auto px-4">
             <div className="bg-linear-to-r from-secondary to-primary p-8 sm:p-12 rounded-[40px] text-white text-center relative overflow-hidden shadow-2xl">
               <div className="relative z-10">
@@ -2066,37 +1921,6 @@ export default function App() {
           </div>
         </section>
 
-        {/* Floating Rebbe Letter Button */}
-        <div className="fixed right-0 top-[35%] -translate-y-1/2 z-40 hidden md:flex flex-col items-center select-none">
-          <motion.button
-            onClick={() => setIsLetterModalOpen(true)}
-            whileHover={{ scale: 1.05, x: -4 }}
-            className="bg-[#5F1427] hover:bg-[#4E0F1F] text-white font-bold py-6 px-4 rounded-l-2xl shadow-xl flex flex-col items-center gap-3 border-y border-l border-amber-400/30 cursor-pointer text-center relative transition-all"
-            style={{ writingMode: 'vertical-rl' }}
-          >
-            <div className="bg-white/10 p-1.5 rounded-full text-amber-200">
-              <Mail size={16} />
-            </div>
-            <span className="tracking-widest text-xs sm:text-sm font-black mt-1 text-amber-100">
-              כתיבה לרבי - ג' בתמוז
-            </span>
-          </motion.button>
-        </div>
-
-        {/* Mobile Floating Button */}
-        <div className="fixed bottom-6 right-6 z-40 md:hidden flex items-center justify-center">
-          <motion.button
-            onClick={() => setIsLetterModalOpen(true)}
-            whileTap={{ scale: 0.95 }}
-            className="bg-[#5F1427] hover:bg-[#4E0F1F] text-white font-bold px-4 py-3.5 rounded-full shadow-lg flex items-center justify-center gap-2 border border-amber-400/20 cursor-pointer transition-all"
-          >
-            <div className="text-amber-200">
-              <Mail size={16} />
-            </div>
-            <span className="text-sm font-black tracking-wide">כתיבה לרבי לג' בתמוז</span>
-          </motion.button>
-        </div>
-
         <AnimatePresence>
           {isRevolutionModalOpen && (
             <RevolutionModal 
@@ -2104,15 +1928,9 @@ export default function App() {
               onClose={() => setIsRevolutionModalOpen(false)} 
             />
           )}
-          {isLetterModalOpen && (
-            <LetterToRebbeModal 
-              isOpen={isLetterModalOpen} 
-              onClose={() => setIsLetterModalOpen(false)} 
-            />
-          )}
         </AnimatePresence>
       </main>
-      <Footer setView={setView} onLetterClick={() => setIsLetterModalOpen(true)} />
+      <Footer setView={setView} />
     </div>
   );
 }
